@@ -79,6 +79,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
   // Blog Article Reader & All Updates Modals
   const [selectedBlog, setSelectedBlog] = useState<HospitalBlog | null>(null);
   const [showAllBlogsModal, setShowAllBlogsModal] = useState(false);
+  const [showAllSpecialities, setShowAllSpecialities] = useState(false);
 
   // Pillars Data
   const pillars = [
@@ -604,47 +605,121 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
         </div>
       </section>
 
-      {/* 4. ADVANCED SPECIALITIES (22 Departments Staggered Grid Reveal) */}
-      <section id="specialities" className="py-16 sm:py-20 lg:py-24 bg-white overflow-hidden">
+      {/* 4. ADVANCED SPECIALITIES (Exact Meditrina Layout & Styling) */}
+      <section id="specialities" className="py-16 sm:py-20 lg:py-28 bg-white overflow-hidden scroll-mt-20">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
-          <MotionReveal direction="left" duration={0.8}>
-            <div className="max-w-2xl mb-12">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
-                Clinical Excellence
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight leading-tight">
-                Advanced Specialities.
-                <br />
-                <span className="text-[#00829B]">Exceptional Outcomes.</span>
-              </h2>
-              <p className="text-sm sm:text-base text-[#666666] mt-3">
-                Explore our 22+ clinical departments led by senior board-certified consultants,
-                surgeons, and dedicated care teams.
-              </p>
-            </div>
-          </MotionReveal>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+            {/* Left Column: Heading, Subtitle & Action Buttons */}
+            <div className="lg:col-span-5 flex flex-col justify-start">
+              <MotionReveal direction="left" duration={0.8}>
+                <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-bold text-[#1A1A1A] tracking-tight leading-[1.18]">
+                  Advanced Specialities.
+                  <br />
+                  Exceptional Outcomes.
+                </h2>
+                <p className="text-sm sm:text-base text-[#4A4A4A] mt-5 sm:mt-6 max-w-[440px] leading-relaxed">
+                  World-class care across all specialities, powered by expert doctors and advanced technology.
+                </p>
 
-          {/* Grid of 22 Specialities with Staggered Entrance */}
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" staggerDelay={0.03}>
-            {allSpecialities.map((spec, index) => (
-              <StaggerItem key={index} direction="up" distance={25}>
-                <button
-                  onClick={() => onSelectCategory(spec)}
-                  className="group w-full flex items-center justify-between p-4 sm:p-5 rounded-xl border border-[#E5E7EB] hover:border-[#00829B] bg-white hover:bg-[#F0F9FB] hover:-translate-y-1 hover:shadow-md transition-all duration-300 text-left cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#00829B]/30 group-hover:bg-[#00829B] group-hover:scale-125 transition-all duration-300" />
-                    <span className="text-sm sm:text-base font-semibold text-[#222222] group-hover:text-[#00829B] transition-colors">
-                      {spec}
-                    </span>
-                  </div>
-                  <div className="w-7 h-7 rounded-full bg-gray-50 group-hover:bg-[#00829B] group-hover:text-white flex items-center justify-center text-[#A0AEC0] transition-all duration-300">
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </button>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
+                <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-5 sm:gap-6">
+                  {/* Book an Appointment Button */}
+                  <button
+                    type="button"
+                    onClick={() => onBookAppointment()}
+                    className="group inline-flex items-center gap-2.5 px-6 sm:px-7 py-3 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white text-sm font-semibold transition-all duration-300 shadow-sm cursor-pointer hover:shadow-cyan-900/20 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <span>Book an Appointment</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  </button>
+
+                  {/* Find a Doctor Button */}
+                  <button
+                    type="button"
+                    onClick={onNavigateDoctors}
+                    className="group inline-flex items-center gap-2.5 text-sm font-semibold text-[#1A1A1A] hover:text-[#00829B] transition-colors cursor-pointer"
+                  >
+                    <span>Find a Doctor</span>
+                    <div className="w-6 h-6 rounded-full bg-[#00829B] group-hover:bg-[#006C82] text-white flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
+                      <ChevronRight className="w-3.5 h-3.5 ml-0.5 group-hover:translate-x-0.5 transition-transform duration-300" />
+                    </div>
+                  </button>
+                </div>
+              </MotionReveal>
+            </div>
+
+            {/* Right Column: 2-Column Minimalist List with Divider Lines */}
+            <div className="lg:col-span-7 flex flex-col">
+              <MotionReveal direction="right" duration={0.8} delay={0.15}>
+                {(() => {
+                  const visibleSpecialities = showAllSpecialities
+                    ? allSpecialities
+                    : allSpecialities.slice(0, 10);
+
+                  const half = Math.ceil(visibleSpecialities.length / 2);
+                  const col1 = visibleSpecialities.slice(0, half);
+                  const col2 = visibleSpecialities.slice(half);
+
+                  return (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 lg:gap-x-14">
+                        {/* Sub-column 1 */}
+                        <div className="flex flex-col">
+                          {col1.map((spec) => (
+                            <button
+                              key={spec}
+                              type="button"
+                              onClick={() => onSelectCategory(spec)}
+                              className="group w-full py-3.5 sm:py-4 border-b border-[#E5E7EB] flex items-center justify-between text-left transition-colors cursor-pointer"
+                            >
+                              <span className="text-sm sm:text-[15px] font-normal text-[#1A1A1A] group-hover:text-[#00829B] transition-colors pr-3">
+                                {spec}
+                              </span>
+                              <ArrowRight className="w-4 h-4 text-[#1A1A1A] group-hover:text-[#00829B] group-hover:translate-x-1 transition-all duration-200 shrink-0" />
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Sub-column 2 */}
+                        <div className="flex flex-col">
+                          {col2.map((spec) => (
+                            <button
+                              key={spec}
+                              type="button"
+                              onClick={() => onSelectCategory(spec)}
+                              className="group w-full py-3.5 sm:py-4 border-b border-[#E5E7EB] flex items-center justify-between text-left transition-colors cursor-pointer"
+                            >
+                              <span className="text-sm sm:text-[15px] font-normal text-[#1A1A1A] group-hover:text-[#00829B] transition-colors pr-3">
+                                {spec}
+                              </span>
+                              <ArrowRight className="w-4 h-4 text-[#1A1A1A] group-hover:text-[#00829B] group-hover:translate-x-1 transition-all duration-200 shrink-0" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* View Specialities Button */}
+                      <div className="mt-8 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowAllSpecialities(!showAllSpecialities)}
+                          className="group inline-flex items-center gap-2.5 text-sm font-semibold text-[#1A1A1A] hover:text-[#00829B] transition-colors cursor-pointer"
+                        >
+                          <span>{showAllSpecialities ? 'View Less' : 'View Specialities'}</span>
+                          <div className="w-6 h-6 rounded-full bg-[#00829B] group-hover:bg-[#006C82] text-white flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
+                            <ChevronRight
+                              className={`w-3.5 h-3.5 ml-0.5 transition-transform duration-300 ${
+                                showAllSpecialities ? '-rotate-90' : 'group-hover:translate-x-0.5'
+                              }`}
+                            />
+                          </div>
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()}
+              </MotionReveal>
+            </div>
+          </div>
         </div>
       </section>
 
