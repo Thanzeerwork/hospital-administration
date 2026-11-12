@@ -6,6 +6,12 @@ import { useHospital } from '@/context/HospitalContext';
 import { Doctor, HospitalBlog } from '@/types';
 import BlurText from '@/components/common/BlurText';
 import {
+  MotionReveal,
+  StaggerContainer,
+  StaggerItem,
+  ParagonArrowButton,
+} from '@/components/common/MotionReveal';
+import {
   Search,
   Calendar,
   ArrowRight,
@@ -398,463 +404,499 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
               className="mb-4 max-w-[660px] text-4xl sm:text-5xl md:text-[54px] leading-[1.12] font-bold text-white tracking-tight"
             />
 
-            {/* Subtitle */}
-            <p className="mb-8 sm:mb-10 max-w-[500px] text-lg sm:text-xl leading-relaxed text-white font-normal">
-              Experience world-class healthcare tailored to your unique needs, guided by globally
-              renowned specialists.
-            </p>
+            {/* Subtitle with Smooth Motion Reveal */}
+            <MotionReveal direction="up" delay={0.2} duration={0.8} distance={30}>
+              <p className="mb-8 sm:mb-10 max-w-[500px] text-lg sm:text-xl leading-relaxed text-white font-normal">
+                Experience world-class healthcare tailored to your unique needs, guided by globally
+                renowned specialists.
+              </p>
+            </MotionReveal>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-6 sm:gap-8">
-              <button
-                type="button"
-                onClick={() => onBookAppointment()}
-                className="inline-flex items-center gap-3 rounded-full border border-[#0E88AA] bg-[#0E88AA] hover:border-[#0B6F8E] hover:bg-[#0B6F8E] text-white px-7 py-3 text-base font-medium shadow-md transition-all duration-200 cursor-pointer"
-              >
-                <span>Book an Appointment</span>
-                <span className="relative inline-flex h-4 w-4 shrink-0 overflow-hidden" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M12.175 9H0V7H12.175L6.575 1.4L8 0L16 8L8 16L6.575 14.6L12.175 9Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </span>
-              </button>
+            {/* Action Buttons with Interactive Hover & Spring Feedback */}
+            <MotionReveal direction="up" delay={0.35} duration={0.8} distance={30}>
+              <div className="flex flex-wrap items-center gap-6 sm:gap-8">
+                <button
+                  type="button"
+                  onClick={() => onBookAppointment()}
+                  className="group inline-flex items-center gap-3 rounded-full border border-[#0E88AA] bg-[#0E88AA] hover:border-[#0B6F8E] hover:bg-[#0B6F8E] hover:scale-105 active:scale-95 text-white px-7 py-3 text-base font-semibold shadow-md hover:shadow-cyan-950/40 transition-all duration-300 cursor-pointer"
+                >
+                  <span>Book an Appointment</span>
+                  <span className="relative inline-flex h-4 w-4 shrink-0 overflow-hidden" aria-hidden="true">
+                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M12.175 9H0V7H12.175L6.575 1.4L8 0L16 8L8 16L6.575 14.6L12.175 9Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </span>
+                </button>
 
-              <a
-                href="#specialities"
-                className="group inline-flex items-center gap-3 text-base font-medium text-white hover:text-[#7EE3D8] transition-colors cursor-pointer"
-              >
-                <span>View Specialities</span>
-                <span className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-[#1A1A1A] group-hover:bg-[#0E88AA] group-hover:text-white transition-all shadow-sm">
-                  <ChevronRight className="w-4 h-4 ml-0.5" />
-                </span>
-              </a>
-            </div>
+                <a
+                  href="#specialities"
+                  className="group inline-flex items-center gap-3 text-base font-medium text-white hover:text-[#7EE3D8] transition-all cursor-pointer"
+                >
+                  <span>View Specialities</span>
+                  <span className="w-8 h-8 rounded-full bg-white/95 group-hover:bg-[#0E88AA] group-hover:scale-110 group-hover:text-white flex items-center justify-center text-[#1A1A1A] transition-all duration-300 shadow-sm">
+                    <ChevronRight className="w-4 h-4 ml-0.5 group-hover:translate-x-0.5 transition-transform" />
+                  </span>
+                </a>
+              </div>
+            </MotionReveal>
 
             {/* Authenticated Patient Quick Status */}
             {isPatientAuthenticated && patientUser && (
-              <div className="mt-8 inline-flex items-center gap-3 px-3.5 py-2 rounded-xl bg-black/40 backdrop-blur-md border border-white/15 text-xs text-white">
-                <CheckCircle2 className="w-4 h-4 text-[#22A06B]" />
-                <span>
-                  Signed in as <strong>{patientUser.name}</strong> •{' '}
-                  <button
-                    onClick={onNavigateAppointments}
-                    className="underline text-[#7EE3D8] hover:text-white"
-                  >
-                    View your appointments
-                  </button>
-                </span>
-              </div>
+              <MotionReveal direction="up" delay={0.5} duration={0.6}>
+                <div className="mt-8 inline-flex items-center gap-3 px-3.5 py-2 rounded-xl bg-black/40 backdrop-blur-md border border-white/15 text-xs text-white">
+                  <CheckCircle2 className="w-4 h-4 text-[#22A06B]" />
+                  <span>
+                    Signed in as <strong>{patientUser.name}</strong> •{' '}
+                    <button
+                      onClick={onNavigateAppointments}
+                      className="underline text-[#7EE3D8] hover:text-white"
+                    >
+                      View your appointments
+                    </button>
+                  </span>
+                </div>
+              </MotionReveal>
             )}
           </div>
         </div>
       </section>
 
-      {/* 2. QUICK SEARCH BAR (Exact Meditrina Layout: World-Class Doctors, Close to Home) */}
-      <section className="bg-white border-b border-[#CDCACA]/50 py-8 lg:py-10">
+      {/* 2. QUICK SEARCH BAR (Directional Left/Right Reveal) */}
+      <section className="bg-white border-b border-[#CDCACA]/50 py-8 lg:py-10 overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] tracking-tight">
-                World-Class Doctors, Close to Home
-              </h2>
-              <p className="text-sm text-[#666666] mt-1">
-                Find trusted consultants and book appointments across 6 hospital branches
-              </p>
-            </div>
+            <MotionReveal direction="left" duration={0.7}>
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] tracking-tight">
+                  World-Class Doctors, Close to Home
+                </h2>
+                <p className="text-sm text-[#666666] mt-1">
+                  Find trusted consultants and book appointments across 6 hospital branches
+                </p>
+              </div>
+            </MotionReveal>
 
             {/* Quick Search Form */}
-            <form
-              onSubmit={handleSearch}
-              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-[#F4F6F6] p-2 rounded-2xl border border-[#E0E5E3] max-w-2xl w-full"
-            >
-              {/* Location Select */}
-              <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-200 text-sm font-semibold text-[#1A1A1A] shrink-0">
-                <MapPin className="w-4 h-4 text-[#00829B]" />
-                <select
-                  value={searchLocation}
-                  onChange={(e) => setSearchLocation(e.target.value)}
-                  className="bg-transparent border-none outline-none cursor-pointer pr-1"
-                >
-                  <option value="Kollam">Kollam</option>
-                  <option value="Trivandrum">Trivandrum</option>
-                  <option value="Palakkad">Palakkad</option>
-                  <option value="Panchkula">Panchkula</option>
-                  <option value="Ambala">Ambala</option>
-                  <option value="Maldives">Maldives</option>
-                </select>
-              </div>
-
-              {/* Input */}
-              <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-200">
-                <Search className="w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search doctor name or speciality (e.g. Cardiology)..."
-                  className="w-full text-sm outline-none text-[#1A1A1A] placeholder-gray-400 bg-transparent"
-                />
-              </div>
-
-              {/* Search Button */}
-              <button
-                type="submit"
-                className="px-6 py-2.5 rounded-xl bg-[#00829B] hover:bg-[#006C82] text-white font-medium text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            <MotionReveal direction="right" duration={0.7} className="max-w-2xl w-full">
+              <form
+                onSubmit={handleSearch}
+                className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-[#F4F6F6] p-2 rounded-2xl border border-[#E0E5E3] w-full shadow-xs hover:border-[#00829B]/30 transition-all duration-300"
               >
-                <span>Search</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
+                {/* Location Select */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-200 text-sm font-semibold text-[#1A1A1A] shrink-0">
+                  <MapPin className="w-4 h-4 text-[#00829B]" />
+                  <select
+                    value={searchLocation}
+                    onChange={(e) => setSearchLocation(e.target.value)}
+                    className="bg-transparent border-none outline-none cursor-pointer pr-1"
+                  >
+                    <option value="Kollam">Kollam</option>
+                    <option value="Trivandrum">Trivandrum</option>
+                    <option value="Palakkad">Palakkad</option>
+                    <option value="Panchkula">Panchkula</option>
+                    <option value="Ambala">Ambala</option>
+                    <option value="Maldives">Maldives</option>
+                  </select>
+                </div>
+
+                {/* Input */}
+                <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-200 focus-within:border-[#00829B] transition-colors">
+                  <Search className="w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search doctor name or speciality (e.g. Cardiology)..."
+                    className="w-full text-sm outline-none text-[#1A1A1A] placeholder-gray-400 bg-transparent"
+                  />
+                </div>
+
+                {/* Search Button */}
+                <button
+                  type="submit"
+                  className="group px-6 py-2.5 rounded-xl bg-[#00829B] hover:bg-[#006C82] hover:scale-105 active:scale-95 text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-sm"
+                >
+                  <span>Search</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </form>
+            </MotionReveal>
           </div>
         </div>
       </section>
 
-      {/* 3. WHAT'S NEW SECTION (Rendered dynamically from published hospital blogs) */}
-      <section id="updates" className="py-16 sm:py-20 lg:py-24 bg-[#FAFBFA] border-b border-[#EAEAEA] scroll-mt-20">
+      {/* 3. WHAT'S NEW SECTION (Staggered Card Lift & Zoom Effects) */}
+      <section id="updates" className="py-16 sm:py-20 lg:py-24 bg-[#FAFBFA] border-b border-[#EAEAEA] scroll-mt-20 overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 lg:mb-12 gap-4">
-            <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#00829B] mb-2">
-                <span>Updates & Breakthroughs</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight">
-                What&apos;s New
-              </h2>
-            </div>
-            <button
-              onClick={() => setShowAllBlogsModal(true)}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#00829B] hover:text-[#006C82] group cursor-pointer"
-            >
-              <span>View All Updates ({blogs.length})</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {blogs.slice(0, 3).map((blog) => (
-              <div
-                key={blog.id}
-                className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm hover:shadow-md transition-all flex flex-col group"
-              >
-                <div className="relative aspect-[524/280] w-full overflow-hidden bg-gray-100">
-                  <img
-                    src={blog.image}
-                    alt={blog.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span
-                    className="absolute top-3 left-3 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider"
-                    style={{ backgroundColor: blog.tagColor || '#00829B' }}
-                  >
-                    {blog.category}
-                  </span>
+            <MotionReveal direction="left">
+              <div>
+                <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#00829B] mb-2">
+                  <span>Updates & Breakthroughs</span>
                 </div>
-                <div className="p-6 flex flex-1 flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between text-[11px] text-[#888888] mb-2">
-                      <span>{blog.date}</span>
-                      <span>{blog.readTime || '4 min read'}</span>
-                    </div>
-                    <h3
-                      onClick={() => setSelectedBlog(blog)}
-                      className="text-lg font-bold text-[#1A1A1A] leading-snug group-hover:text-[#00829B] transition-colors mb-2.5 cursor-pointer"
-                    >
-                      {blog.title}
-                    </h3>
-                    <p className="text-sm text-[#666666] leading-relaxed mb-6 line-clamp-3">
-                      {blog.excerpt}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedBlog(blog)}
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-[#00829B] hover:text-[#006C82] cursor-pointer"
-                  >
-                    <span>View in Detail</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight">
+                  What&apos;s New
+                </h2>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </MotionReveal>
 
-      {/* 4. ADVANCED SPECIALITIES (22 Departments Exact Meditrina List) */}
-      <section id="specialities" className="py-16 sm:py-20 lg:py-24 bg-white">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="max-w-2xl mb-12">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
-              Clinical Excellence
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight leading-tight">
-              Advanced Specialities.
-              <br />
-              <span className="text-[#00829B]">Exceptional Outcomes.</span>
-            </h2>
-            <p className="text-sm sm:text-base text-[#666666] mt-3">
-              Explore our 22+ clinical departments led by senior board-certified consultants,
-              surgeons, and dedicated care teams.
-            </p>
-          </div>
-
-          {/* Grid of 22 Specialities */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-            {allSpecialities.map((spec, index) => (
+            <MotionReveal direction="right">
               <button
-                key={index}
-                onClick={() => onSelectCategory(spec)}
-                className="group flex items-center justify-between p-4 sm:p-5 rounded-xl border border-[#E5E7EB] hover:border-[#00829B] bg-white hover:bg-[#F0F9FB] transition-all text-left cursor-pointer"
+                onClick={() => setShowAllBlogsModal(true)}
+                className="group inline-flex items-center gap-2 text-sm font-semibold text-[#00829B] hover:text-[#006C82] cursor-pointer"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[#00829B]/40 group-hover:bg-[#00829B] group-hover:scale-125 transition-all" />
-                  <span className="text-sm sm:text-base font-semibold text-[#222222] group-hover:text-[#00829B] transition-colors">
-                    {spec}
-                  </span>
-                </div>
-                <ArrowRight className="w-4 h-4 text-[#A0AEC0] group-hover:text-[#00829B] group-hover:translate-x-1 transition-all" />
+                <span>View All Updates ({blogs.length})</span>
+                <span className="w-7 h-7 rounded-full border border-[#00829B]/30 group-hover:border-[#00829B] group-hover:bg-[#00829B] group-hover:text-white flex items-center justify-center transition-all duration-300">
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </span>
               </button>
-            ))}
+            </MotionReveal>
           </div>
+
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8" staggerDelay={0.12}>
+            {blogs.slice(0, 3).map((blog) => (
+              <StaggerItem key={blog.id} direction="up" distance={40}>
+                <div className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-xs hover:shadow-2xl hover:-translate-y-2 hover:border-[#00829B]/40 transition-all duration-400 flex flex-col group h-full">
+                  <div className="relative aspect-[524/280] w-full overflow-hidden bg-gray-100">
+                    <img
+                      src={blog.image}
+                      alt={blog.title}
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                    />
+                    <span
+                      className="absolute top-3 left-3 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm"
+                      style={{ backgroundColor: blog.tagColor || '#00829B' }}
+                    >
+                      {blog.category}
+                    </span>
+                  </div>
+                  <div className="p-6 flex flex-1 flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-[#888888] mb-2">
+                        <span>{blog.date}</span>
+                        <span>{blog.readTime || '4 min read'}</span>
+                      </div>
+                      <h3
+                        onClick={() => setSelectedBlog(blog)}
+                        className="text-lg font-bold text-[#1A1A1A] leading-snug group-hover:text-[#00829B] transition-colors mb-2.5 cursor-pointer"
+                      >
+                        {blog.title}
+                      </h3>
+                      <p className="text-sm text-[#666666] leading-relaxed mb-6 line-clamp-3">
+                        {blog.excerpt}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedBlog(blog)}
+                      className="group/btn inline-flex items-center gap-2 text-sm font-semibold text-[#00829B] hover:text-[#006C82] cursor-pointer"
+                    >
+                      <span>View in Detail</span>
+                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-200" />
+                    </button>
+                  </div>
+                </div>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
         </div>
       </section>
 
-      {/* 5. COMPREHENSIVE CARE & HEALTH PACKAGES */}
-      <section id="packages" className="py-16 sm:py-20 lg:py-24 bg-[#FAFBFA] border-t border-b border-[#EAEAEA] scroll-mt-20">
+      {/* 4. ADVANCED SPECIALITIES (22 Departments Staggered Grid Reveal) */}
+      <section id="specialities" className="py-16 sm:py-20 lg:py-24 bg-white overflow-hidden">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
+          <MotionReveal direction="left" duration={0.8}>
+            <div className="max-w-2xl mb-12">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
+                Clinical Excellence
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight leading-tight">
+                Advanced Specialities.
+                <br />
+                <span className="text-[#00829B]">Exceptional Outcomes.</span>
+              </h2>
+              <p className="text-sm sm:text-base text-[#666666] mt-3">
+                Explore our 22+ clinical departments led by senior board-certified consultants,
+                surgeons, and dedicated care teams.
+              </p>
+            </div>
+          </MotionReveal>
+
+          {/* Grid of 22 Specialities with Staggered Entrance */}
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" staggerDelay={0.03}>
+            {allSpecialities.map((spec, index) => (
+              <StaggerItem key={index} direction="up" distance={25}>
+                <button
+                  onClick={() => onSelectCategory(spec)}
+                  className="group w-full flex items-center justify-between p-4 sm:p-5 rounded-xl border border-[#E5E7EB] hover:border-[#00829B] bg-white hover:bg-[#F0F9FB] hover:-translate-y-1 hover:shadow-md transition-all duration-300 text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#00829B]/30 group-hover:bg-[#00829B] group-hover:scale-125 transition-all duration-300" />
+                    <span className="text-sm sm:text-base font-semibold text-[#222222] group-hover:text-[#00829B] transition-colors">
+                      {spec}
+                    </span>
+                  </div>
+                  <div className="w-7 h-7 rounded-full bg-gray-50 group-hover:bg-[#00829B] group-hover:text-white flex items-center justify-center text-[#A0AEC0] transition-all duration-300">
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </button>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
+        </div>
+      </section>
+
+      {/* 5. COMPREHENSIVE CARE & HEALTH PACKAGES (Staggered Reveal & Deep Lift) */}
+      <section id="packages" className="py-16 sm:py-20 lg:py-24 bg-[#FAFBFA] border-t border-b border-[#EAEAEA] scroll-mt-20 overflow-hidden">
         <div id="facilities" className="scroll-mt-24" />
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="max-w-xl mb-12">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
-              Integrated Facilities & Packages
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight">
-              Comprehensive Care, Thoughtfully Delivered
-            </h2>
-            <p className="text-sm sm:text-base text-[#666666] mt-3">
-              A complete range of healthcare services designed to support you at every stage—from
-              early diagnosis to full recovery.
-            </p>
-          </div>
+          <MotionReveal direction="left" duration={0.8}>
+            <div className="max-w-xl mb-12">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
+                Integrated Facilities & Packages
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight">
+                Comprehensive Care, Thoughtfully Delivered
+              </h2>
+              <p className="text-sm sm:text-base text-[#666666] mt-3">
+                A complete range of healthcare services designed to support you at every stage—from
+                early diagnosis to full recovery.
+              </p>
+            </div>
+          </MotionReveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" staggerDelay={0.08}>
             {/* Card 1: International Patients */}
-            <div className="group relative rounded-2xl overflow-hidden aspect-[384/491] shadow-sm hover:shadow-xl transition-all cursor-pointer">
-              <img
-                src="https://www.meditrinahospitals.com/images/home/card-1.webp"
-                alt="International Patients"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-              <div className="absolute right-0 bottom-0 left-0 p-5 sm:p-6 text-white flex flex-col justify-end">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-[#7EE3D8] mb-1">
-                  Global Healthcare
-                </span>
-                <h4 className="text-xl font-bold text-white mb-2 leading-snug">
-                  International Patients
-                </h4>
-                <p className="text-xs text-white/80 line-clamp-2 mb-4">
-                  Dedicated support for international patients, from travel logistics to treatment
-                  and language interpreters.
-                </p>
-                <div className="inline-flex items-center gap-2 text-xs font-semibold text-white group-hover:text-[#7EE3D8] transition-colors">
-                  <span>Plan Your Visit</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+            <StaggerItem direction="up" distance={35}>
+              <div className="group relative rounded-2xl overflow-hidden aspect-[384/491] shadow-xs hover:shadow-2xl hover:-translate-y-2.5 transition-all duration-400 cursor-pointer h-full">
+                <img
+                  src="https://www.meditrinahospitals.com/images/home/card-1.webp"
+                  alt="International Patients"
+                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                <div className="absolute right-0 bottom-0 left-0 p-5 sm:p-6 text-white flex flex-col justify-end">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-[#7EE3D8] mb-1">
+                    Global Healthcare
+                  </span>
+                  <h4 className="text-xl font-bold text-white mb-2 leading-snug">
+                    International Patients
+                  </h4>
+                  <p className="text-xs text-white/80 line-clamp-2 mb-4">
+                    Dedicated support for international patients, from travel logistics to treatment
+                    and language interpreters.
+                  </p>
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-white group-hover:text-[#7EE3D8] transition-colors">
+                    <span>Plan Your Visit</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
               </div>
-            </div>
+            </StaggerItem>
 
             {/* Card 2: Health Checkup Packages */}
-            <div
-              onClick={() => setSelectedPackage(healthPackages[0])}
-              className="group relative rounded-2xl overflow-hidden aspect-[384/491] shadow-sm hover:shadow-xl transition-all cursor-pointer"
-            >
-              <img
-                src="https://www.meditrinahospitals.com/images/home/card-2.webp"
-                alt="Health Checkup Packages"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-              <div className="absolute right-0 bottom-0 left-0 p-5 sm:p-6 text-white flex flex-col justify-end">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-[#7EE3D8] mb-1">
-                  Preventive Care
-                </span>
-                <h4 className="text-xl font-bold text-white mb-2 leading-snug">
-                  Health Checkup Packages
-                </h4>
-                <p className="text-xs text-white/80 line-clamp-2 mb-4">
-                  Comprehensive health screening packages tailored for individuals and families to
-                  detect early risks.
-                </p>
-                <div className="inline-flex items-center gap-2 text-xs font-semibold text-white group-hover:text-[#7EE3D8] transition-colors">
-                  <span>Explore Packages</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+            <StaggerItem direction="up" distance={35}>
+              <div
+                onClick={() => setSelectedPackage(healthPackages[0])}
+                className="group relative rounded-2xl overflow-hidden aspect-[384/491] shadow-xs hover:shadow-2xl hover:-translate-y-2.5 transition-all duration-400 cursor-pointer h-full"
+              >
+                <img
+                  src="https://www.meditrinahospitals.com/images/home/card-2.webp"
+                  alt="Health Checkup Packages"
+                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                <div className="absolute right-0 bottom-0 left-0 p-5 sm:p-6 text-white flex flex-col justify-end">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-[#7EE3D8] mb-1">
+                    Preventive Care
+                  </span>
+                  <h4 className="text-xl font-bold text-white mb-2 leading-snug">
+                    Health Checkup Packages
+                  </h4>
+                  <p className="text-xs text-white/80 line-clamp-2 mb-4">
+                    Comprehensive health screening packages tailored for individuals and families to
+                    detect early risks.
+                  </p>
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-white group-hover:text-[#7EE3D8] transition-colors">
+                    <span>Explore Packages</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
               </div>
-            </div>
+            </StaggerItem>
 
             {/* Card 3: Cathlab */}
-            <div
-              onClick={() => onSelectCategory('Cardiology')}
-              className="group relative rounded-2xl overflow-hidden aspect-[384/491] shadow-sm hover:shadow-xl transition-all cursor-pointer"
-            >
-              <img
-                src="https://www.meditrinahospitals.com/images/home/card-3.webp"
-                alt="Cathlab"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-              <div className="absolute right-0 bottom-0 left-0 p-5 sm:p-6 text-white flex flex-col justify-end">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-[#7EE3D8] mb-1">
-                  24/7 Cardiac Emergency
-                </span>
-                <h4 className="text-xl font-bold text-white mb-2 leading-snug">Cathlab</h4>
-                <p className="text-xs text-white/80 line-clamp-2 mb-4">
-                  State-of-the-art biplane digital catheterization lab for precision cardiac and
-                  neuro vascular procedures.
-                </p>
-                <div className="inline-flex items-center gap-2 text-xs font-semibold text-white group-hover:text-[#7EE3D8] transition-colors">
-                  <span>Learn More</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+            <StaggerItem direction="up" distance={35}>
+              <div
+                onClick={() => onSelectCategory('Cardiology')}
+                className="group relative rounded-2xl overflow-hidden aspect-[384/491] shadow-xs hover:shadow-2xl hover:-translate-y-2.5 transition-all duration-400 cursor-pointer h-full"
+              >
+                <img
+                  src="https://www.meditrinahospitals.com/images/home/card-3.webp"
+                  alt="Cathlab"
+                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                <div className="absolute right-0 bottom-0 left-0 p-5 sm:p-6 text-white flex flex-col justify-end">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-[#7EE3D8] mb-1">
+                    24/7 Cardiac Emergency
+                  </span>
+                  <h4 className="text-xl font-bold text-white mb-2 leading-snug">Cathlab</h4>
+                  <p className="text-xs text-white/80 line-clamp-2 mb-4">
+                    State-of-the-art biplane digital catheterization lab for precision cardiac and
+                    neuro vascular procedures.
+                  </p>
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-white group-hover:text-[#7EE3D8] transition-colors">
+                    <span>Learn More</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
               </div>
-            </div>
+            </StaggerItem>
 
             {/* Card 4: Physiotherapy */}
-            <div
-              onClick={() => onSelectCategory('Orthopaedics')}
-              className="group relative rounded-2xl overflow-hidden aspect-[384/491] shadow-sm hover:shadow-xl transition-all cursor-pointer"
-            >
-              <img
-                src="https://www.meditrinahospitals.com/images/home/card-4.webp"
-                alt="Physiotherapy"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-              <div className="absolute right-0 bottom-0 left-0 p-5 sm:p-6 text-white flex flex-col justify-end">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-[#7EE3D8] mb-1">
-                  Rehabilitation
-                </span>
-                <h4 className="text-xl font-bold text-white mb-2 leading-snug">Physiotherapy</h4>
-                <p className="text-xs text-white/80 line-clamp-2 mb-4">
-                  Specialized rehabilitation to regain mobility, reduce joint pain, and accelerate
-                  post-surgical recovery.
-                </p>
-                <div className="inline-flex items-center gap-2 text-xs font-semibold text-white group-hover:text-[#7EE3D8] transition-colors">
-                  <span>Book a Session</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+            <StaggerItem direction="up" distance={35}>
+              <div
+                onClick={() => onSelectCategory('Orthopaedics')}
+                className="group relative rounded-2xl overflow-hidden aspect-[384/491] shadow-xs hover:shadow-2xl hover:-translate-y-2.5 transition-all duration-400 cursor-pointer h-full"
+              >
+                <img
+                  src="https://www.meditrinahospitals.com/images/home/card-4.webp"
+                  alt="Physiotherapy"
+                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                <div className="absolute right-0 bottom-0 left-0 p-5 sm:p-6 text-white flex flex-col justify-end">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-[#7EE3D8] mb-1">
+                    Rehabilitation
+                  </span>
+                  <h4 className="text-xl font-bold text-white mb-2 leading-snug">Physiotherapy</h4>
+                  <p className="text-xs text-white/80 line-clamp-2 mb-4">
+                    Specialized rehabilitation to regain mobility, reduce joint pain, and accelerate
+                    post-surgical recovery.
+                  </p>
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-white group-hover:text-[#7EE3D8] transition-colors">
+                    <span>Book a Session</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </StaggerItem>
+          </StaggerContainer>
 
           {/* Dedicated Health Packages Grid */}
           <div className="mt-16 pt-12 border-t border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-1">
-                  Preventive Screening
-                </span>
-                <h3 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">
-                  Popular Health Checkup Packages
-                </h3>
-                <p className="text-xs sm:text-sm text-[#666666] mt-1">
-                  Tailored preventative diagnostics and clinical evaluations designed for every life stage.
-                </p>
-              </div>
+              <MotionReveal direction="left">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-1">
+                    Preventive Screening
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">
+                    Popular Health Checkup Packages
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#666666] mt-1">
+                    Tailored preventative diagnostics and clinical evaluations designed for every life stage.
+                  </p>
+                </div>
+              </MotionReveal>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" staggerDelay={0.08}>
               {healthPackages.map((pkg) => (
-                <div
-                  key={pkg.id}
-                  className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs hover:shadow-lg hover:border-[#00829B]/30 transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-[#00829B] bg-[#E6F3F5] px-2.5 py-0.5 rounded-full mb-3">
-                      {pkg.tag}
-                    </span>
-                    <h4 className="text-base font-bold text-[#1A1A1A] mb-2 leading-snug">
-                      {pkg.title}
-                    </h4>
-                    <p className="text-2xl font-black text-[#00829B] mb-4">
-                      {pkg.price}
-                    </p>
-                    <ul className="space-y-2 mb-6">
-                      {pkg.features.slice(0, 3).map((f: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2 text-xs text-[#555555]">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#22A06B] shrink-0 mt-0.5" />
-                          <span className="line-clamp-1">{f}</span>
-                        </li>
-                      ))}
-                    </ul>
+                <StaggerItem key={pkg.id} direction="up" distance={30}>
+                  <div className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs hover:shadow-xl hover:-translate-y-2 hover:border-[#00829B]/40 transition-all duration-300 flex flex-col justify-between h-full group">
+                    <div>
+                      <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-[#00829B] bg-[#E6F3F5] px-2.5 py-0.5 rounded-full mb-3 group-hover:bg-[#00829B] group-hover:text-white transition-colors duration-300">
+                        {pkg.tag}
+                      </span>
+                      <h4 className="text-base font-bold text-[#1A1A1A] mb-2 leading-snug group-hover:text-[#00829B] transition-colors">
+                        {pkg.title}
+                      </h4>
+                      <p className="text-2xl font-black text-[#00829B] mb-4">
+                        {pkg.price}
+                      </p>
+                      <ul className="space-y-2 mb-6">
+                        {pkg.features.slice(0, 3).map((f: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2 text-xs text-[#555555]">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#22A06B] shrink-0 mt-0.5" />
+                            <span className="line-clamp-1">{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="space-y-2 pt-2 border-t border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPackage(pkg)}
+                        className="w-full py-2 px-3 rounded-lg bg-[#00829B] hover:bg-[#006C82] text-white text-xs font-bold transition-colors cursor-pointer text-center"
+                      >
+                        View Package Details
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPackage(pkg);
+                          onBookAppointment();
+                        }}
+                        className="w-full py-2 px-3 rounded-lg border border-gray-200 hover:border-[#00829B] text-gray-700 hover:text-[#00829B] text-xs font-semibold transition-colors cursor-pointer text-center"
+                      >
+                        Book Now
+                      </button>
+                    </div>
                   </div>
-                  <div className="space-y-2 pt-2 border-t border-gray-100">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPackage(pkg)}
-                      className="w-full py-2 px-3 rounded-lg bg-[#00829B] hover:bg-[#006C82] text-white text-xs font-bold transition-colors cursor-pointer text-center"
-                    >
-                      View Package Details
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedPackage(pkg);
-                        onBookAppointment();
-                      }}
-                      className="w-full py-2 px-3 rounded-lg border border-gray-200 hover:border-[#00829B] text-gray-700 hover:text-[#00829B] text-xs font-semibold transition-colors cursor-pointer text-center"
-                    >
-                      Book Now
-                    </button>
-                  </div>
-                </div>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           </div>
         </div>
       </section>
 
-      {/* 6. BUILT FOR PEOPLE. PROVEN BY OUTCOMES (5 Interactive Pillar Tabs) */}
+      {/* 6. BUILT FOR PEOPLE. PROVEN BY OUTCOMES (5 Interactive Pillar Tabs with Directional Reveal) */}
       <section id="about" className="py-16 sm:py-20 lg:py-28 bg-white overflow-hidden scroll-mt-20">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="max-w-2xl mb-12">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
-              Our Core Philosophy
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1A1A1A] tracking-tight leading-tight">
-              Built for people.
-              <br />
-              <span className="text-[#00829B]">Proven by outcomes.</span>
-            </h2>
-            <p className="text-sm sm:text-base text-[#666666] mt-4">
-              Every decision we make is grounded in clinical excellence, patient dignity, and a
-              relentless drive to improve outcomes.
-            </p>
-          </div>
+          <MotionReveal direction="left" duration={0.8}>
+            <div className="max-w-2xl mb-12">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
+                Our Core Philosophy
+              </span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1A1A1A] tracking-tight leading-tight">
+                Built for people.
+                <br />
+                <span className="text-[#00829B]">Proven by outcomes.</span>
+              </h2>
+              <p className="text-sm sm:text-base text-[#666666] mt-4">
+                Every decision we make is grounded in clinical excellence, patient dignity, and a
+                relentless drive to improve outcomes.
+              </p>
+            </div>
+          </MotionReveal>
 
-          {/* Interactive Navigation Pills */}
-          <div className="flex flex-wrap gap-2 sm:gap-3 mb-10 pb-2 border-b border-[#EAEAEA]">
-            {pillars.map((p, idx) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setActivePillar(idx)}
-                className={`px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                  activePillar === idx
-                    ? 'bg-[#00829B] text-white shadow-md'
-                    : 'bg-[#F2F4F3] text-[#4A4A4A] hover:bg-[#E5E7EB]'
-                }`}
-              >
-                {p.title}
-              </button>
-            ))}
-          </div>
+          {/* Interactive Navigation Pills with Smooth Hover States */}
+          <MotionReveal direction="up" delay={0.1} duration={0.7}>
+            <div className="flex flex-wrap gap-2 sm:gap-3 mb-10 pb-2 border-b border-[#EAEAEA]">
+              {pillars.map((p, idx) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setActivePillar(idx)}
+                  className={`px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
+                    activePillar === idx
+                      ? 'bg-[#00829B] text-white shadow-md'
+                      : 'bg-[#F2F4F3] text-[#4A4A4A] hover:bg-[#E5E7EB] hover:text-[#00829B]'
+                  }`}
+                >
+                  {p.title}
+                </button>
+              ))}
+            </div>
+          </MotionReveal>
 
-          {/* Tab Content Display */}
+          {/* Tab Content Display with Left/Right Synchronized Motion */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            <div className="lg:col-span-5 space-y-6">
+            <MotionReveal direction="left" delay={0.15} duration={0.8} className="lg:col-span-5 space-y-6">
               <span className="text-xs font-bold text-[#00829B] tracking-wider uppercase">
                 Pillar {activePillar + 1} of 5
               </span>
@@ -881,20 +923,21 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
                 <button
                   type="button"
                   onClick={() => onBookAppointment()}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white font-semibold text-sm transition-all shadow-md cursor-pointer"
+                  className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#00829B] hover:bg-[#006C82] hover:scale-105 active:scale-95 text-white font-semibold text-sm transition-all duration-300 shadow-md cursor-pointer"
                 >
                   <span>Experience InspireZest Care</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
-            </div>
+            </MotionReveal>
 
-            <div className="lg:col-span-7">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-gray-100 aspect-[800/520] bg-gray-100">
+            <MotionReveal direction="right" delay={0.2} duration={0.8} className="lg:col-span-7">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-gray-100 aspect-[800/520] bg-gray-100 group">
                 <img
+                  key={pillars[activePillar].image}
                   src={pillars[activePillar].image}
                   alt={pillars[activePillar].title}
-                  className="w-full h-full object-cover transition-opacity duration-500"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
                 <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 bg-black/60 backdrop-blur-md p-4 rounded-xl text-white text-xs sm:text-sm">
                   <p className="font-semibold">{pillars[activePillar].title}</p>
@@ -903,7 +946,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
                   </p>
                 </div>
               </div>
-            </div>
+            </MotionReveal>
           </div>
         </div>
       </section>
@@ -912,7 +955,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
       <section className="py-16 sm:py-20 lg:py-24 bg-[#FAFBFA] border-t border-b border-[#EAEAEA]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
-            <div>
+            <MotionReveal direction="left">
               <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
                 Medical Leadership
               </span>
@@ -923,15 +966,17 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
                 Our world-class doctors bring decades of clinical expertise, empathy, and advanced
                 research to every patient consultation.
               </p>
-            </div>
+            </MotionReveal>
 
-            <button
-              onClick={onNavigateDoctors}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#00829B] text-[#00829B] hover:bg-[#00829B] hover:text-white font-semibold text-sm transition-all cursor-pointer self-start lg:self-auto"
-            >
-              <span>View All Doctors ({doctors.length})</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            <MotionReveal direction="right" delay={0.15}>
+              <ParagonArrowButton
+                onClick={onNavigateDoctors}
+                variant="outline"
+                className="self-start lg:self-auto"
+              >
+                View All Doctors ({doctors.length})
+              </ParagonArrowButton>
+            </MotionReveal>
           </div>
 
           {/* Doctor Cards Grid */}
@@ -963,94 +1008,98 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
             );
 
             return (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StaggerContainer
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+                staggerDelay={0.1}
+              >
                 {/* Dr. N Prathap Kumar (Chairman & Chief Interventional Cardiologist) */}
-                <div className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm hover:shadow-lg transition-all flex flex-col group">
-                  <div className="relative aspect-[492/520] bg-gradient-to-t from-gray-200 to-gray-100 overflow-hidden">
-                    <img
-                      src={prathapDoctor.profileImage}
-                      alt={prathapDoctor.name}
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <span className="absolute top-3 left-3 bg-[#00829B] text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                      Chairman & Chief Cardiologist
-                    </span>
-                  </div>
-                  <div className="p-5 flex flex-1 flex-col justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold text-[#1A1A1A] group-hover:text-[#00829B] transition-colors">
-                        {prathapDoctor.name}
-                      </h3>
-                      <p className="text-xs font-semibold text-[#00829B] mt-0.5">
-                        Interventional Cardiology
-                      </p>
-                      <p className="text-xs text-[#666666] mt-1.5">
-                        MBBS, MD, DM (Cardiology), FCSI, FESC • 28+ Years Exp
-                      </p>
-                    </div>
-                    <div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-2">
-                      <button
-                        onClick={() => onBookAppointment(prathapDoctor)}
-                        className="flex-1 py-2 px-3 rounded-lg bg-[#00829B] hover:bg-[#006C82] text-white font-semibold text-xs text-center transition-colors cursor-pointer"
-                      >
-                        Book Appointment
-                      </button>
-                      <button
-                        onClick={() => onViewDoctorProfile(prathapDoctor)}
-                        className="py-2 px-3 rounded-lg border border-gray-200 hover:border-[#00829B] text-xs font-semibold text-gray-700 transition-colors cursor-pointer"
-                      >
-                        Profile
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Other System Doctors */}
-                {otherDoctors.slice(0, 3).map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm hover:shadow-lg transition-all flex flex-col group"
-                  >
+                <StaggerItem direction="up">
+                  <div className="h-full bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm hover:shadow-2xl hover:border-[#00829B]/40 hover:-translate-y-2 transition-all duration-500 ease-out flex flex-col group">
                     <div className="relative aspect-[492/520] bg-gradient-to-t from-gray-200 to-gray-100 overflow-hidden">
                       <img
-                        src={doc.profileImage}
-                        alt={doc.name}
-                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                        src={prathapDoctor.profileImage}
+                        alt={prathapDoctor.name}
+                        className="w-full h-full object-cover object-top group-hover:scale-108 transition-transform duration-700 ease-out"
                       />
-                      <span className="absolute top-3 left-3 bg-[#00829B] text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                        {doc.specializationName}
+                      <span className="absolute top-3 left-3 bg-[#00829B] text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                        Chairman & Chief Cardiologist
                       </span>
                     </div>
                     <div className="p-5 flex flex-1 flex-col justify-between">
                       <div>
-                        <h3 className="text-lg font-bold text-[#1A1A1A] group-hover:text-[#00829B] transition-colors">
-                          {doc.name}
+                        <h3 className="text-lg font-bold text-[#1A1A1A] group-hover:text-[#00829B] transition-colors duration-300">
+                          {prathapDoctor.name}
                         </h3>
                         <p className="text-xs font-semibold text-[#00829B] mt-0.5">
-                          {doc.specializationName}
+                          Interventional Cardiology
                         </p>
-                        <p className="text-xs text-[#666666] mt-1.5 line-clamp-2">
-                          {doc.experienceYears} Years Experience • Senior Consultant
+                        <p className="text-xs text-[#666666] mt-1.5">
+                          MBBS, MD, DM (Cardiology), FCSI, FESC • 28+ Years Exp
                         </p>
                       </div>
                       <div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-2">
                         <button
-                          onClick={() => onBookAppointment(doc)}
-                          className="flex-1 py-2 px-3 rounded-lg bg-[#00829B] hover:bg-[#006C82] text-white font-semibold text-xs text-center transition-colors cursor-pointer"
+                          onClick={() => onBookAppointment(prathapDoctor)}
+                          className="flex-1 py-2 px-3 rounded-lg bg-[#00829B] hover:bg-[#006C82] hover:scale-[1.02] active:scale-[0.98] text-white font-semibold text-xs text-center transition-all duration-200 cursor-pointer shadow-sm"
                         >
                           Book Appointment
                         </button>
                         <button
-                          onClick={() => onViewDoctorProfile(doc)}
-                          className="py-2 px-3 rounded-lg border border-gray-200 hover:border-[#00829B] text-xs font-semibold text-gray-700 transition-colors cursor-pointer"
+                          onClick={() => onViewDoctorProfile(prathapDoctor)}
+                          className="py-2 px-3 rounded-lg border border-gray-200 hover:border-[#00829B] hover:text-[#00829B] text-xs font-semibold text-gray-700 transition-colors duration-200 cursor-pointer"
                         >
                           Profile
                         </button>
                       </div>
                     </div>
                   </div>
+                </StaggerItem>
+
+                {/* Other System Doctors */}
+                {otherDoctors.slice(0, 3).map((doc) => (
+                  <StaggerItem key={doc.id} direction="up">
+                    <div className="h-full bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm hover:shadow-2xl hover:border-[#00829B]/40 hover:-translate-y-2 transition-all duration-500 ease-out flex flex-col group">
+                      <div className="relative aspect-[492/520] bg-gradient-to-t from-gray-200 to-gray-100 overflow-hidden">
+                        <img
+                          src={doc.profileImage}
+                          alt={doc.name}
+                          className="w-full h-full object-cover object-top group-hover:scale-108 transition-transform duration-700 ease-out"
+                        />
+                        <span className="absolute top-3 left-3 bg-[#00829B] text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                          {doc.specializationName}
+                        </span>
+                      </div>
+                      <div className="p-5 flex flex-1 flex-col justify-between">
+                        <div>
+                          <h3 className="text-lg font-bold text-[#1A1A1A] group-hover:text-[#00829B] transition-colors duration-300">
+                            {doc.name}
+                          </h3>
+                          <p className="text-xs font-semibold text-[#00829B] mt-0.5">
+                            {doc.specializationName}
+                          </p>
+                          <p className="text-xs text-[#666666] mt-1.5 line-clamp-2">
+                            {doc.experienceYears} Years Experience • Senior Consultant
+                          </p>
+                        </div>
+                        <div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-2">
+                          <button
+                            onClick={() => onBookAppointment(doc)}
+                            className="flex-1 py-2 px-3 rounded-lg bg-[#00829B] hover:bg-[#006C82] hover:scale-[1.02] active:scale-[0.98] text-white font-semibold text-xs text-center transition-all duration-200 cursor-pointer shadow-sm"
+                          >
+                            Book Appointment
+                          </button>
+                          <button
+                            onClick={() => onViewDoctorProfile(doc)}
+                            className="py-2 px-3 rounded-lg border border-gray-200 hover:border-[#00829B] hover:text-[#00829B] text-xs font-semibold text-gray-700 transition-colors duration-200 cursor-pointer"
+                          >
+                            Profile
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </StaggerItem>
                 ))}
-              </div>
+              </StaggerContainer>
             );
           })()}
         </div>
@@ -1059,7 +1108,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
       {/* 8. PATIENT TESTIMONIALS */}
       <section className="py-16 sm:py-20 lg:py-24 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="max-w-2xl mb-12">
+          <MotionReveal direction="left" className="max-w-2xl mb-12">
             <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
               Stories of Healing
             </span>
@@ -1069,34 +1118,33 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
             <p className="text-sm sm:text-base text-[#666666] mt-2">
               Real recovery stories from patients, newest first.
             </p>
-          </div>
+          </MotionReveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8" staggerDelay={0.12}>
             {testimonials.map((t) => (
-              <div
-                key={t.id}
-                className="p-8 rounded-2xl bg-[#F4F6F6] border border-[#E5E7EB] flex flex-col justify-between hover:border-[#00829B]/40 transition-all shadow-2xs"
-              >
-                <div>
-                  <div className="flex items-center gap-1 text-[#E9A23B] mb-4">
-                    {[...Array(t.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-current" />
-                    ))}
+              <StaggerItem key={t.id} direction="up">
+                <div className="h-full p-8 rounded-2xl bg-[#F4F6F6] border border-[#E5E7EB] flex flex-col justify-between hover:border-[#00829B]/40 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 ease-out group">
+                  <div>
+                    <div className="flex items-center gap-1 text-[#E9A23B] mb-4">
+                      {[...Array(t.rating)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-current group-hover:scale-110 transition-transform duration-300" />
+                      ))}
+                    </div>
+                    <span className="text-[11px] font-bold text-[#00829B] uppercase tracking-wider block mb-2">
+                      {t.tag}
+                    </span>
+                    <p className="text-sm sm:text-base text-[#333333] leading-relaxed italic mb-6">
+                      &ldquo;{t.quote}&rdquo;
+                    </p>
                   </div>
-                  <span className="text-[11px] font-bold text-[#00829B] uppercase tracking-wider block mb-2">
-                    {t.tag}
-                  </span>
-                  <p className="text-sm sm:text-base text-[#333333] leading-relaxed italic mb-6">
-                    &ldquo;{t.quote}&rdquo;
-                  </p>
+                  <div className="pt-4 border-t border-gray-200/70">
+                    <p className="text-sm font-bold text-[#1A1A1A]">{t.name}</p>
+                    <p className="text-xs text-[#777777]">{t.location}</p>
+                  </div>
                 </div>
-                <div className="pt-4 border-t border-gray-200/70">
-                  <p className="text-sm font-bold text-[#1A1A1A]">{t.name}</p>
-                  <p className="text-xs text-[#777777]">{t.location}</p>
-                </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
@@ -1104,7 +1152,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
       <section className="py-16 sm:py-20 lg:py-24 bg-[#FAFBFA] border-t border-b border-[#EAEAEA]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-6">
-            <div>
+            <MotionReveal direction="left">
               <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
                 Knowledge & Events
               </span>
@@ -1115,58 +1163,63 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
                 Stay informed with the latest medical insights, hospital updates, and expert
                 perspectives from InspireZest.
               </p>
-            </div>
+            </MotionReveal>
 
             {/* Toggle Tabs */}
-            <div className="flex items-center gap-2 bg-[#EAEAEA] p-1 rounded-xl self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => setInsightsTab('news')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  insightsTab === 'news'
-                    ? 'bg-white text-[#00829B] shadow-xs'
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                News & Events
-              </button>
-              <button
-                type="button"
-                onClick={() => setInsightsTab('blogs')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  insightsTab === 'blogs'
-                    ? 'bg-white text-[#00829B] shadow-xs'
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                Blogs & Articles
-              </button>
-            </div>
+            <MotionReveal direction="right" delay={0.15}>
+              <div className="flex items-center gap-2 bg-[#EAEAEA] p-1 rounded-xl self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setInsightsTab('news')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    insightsTab === 'news'
+                      ? 'bg-white text-[#00829B] shadow-xs'
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                >
+                  News & Events
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInsightsTab('blogs')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    insightsTab === 'blogs'
+                      ? 'bg-white text-[#00829B] shadow-xs'
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                >
+                  Blogs & Articles
+                </button>
+              </div>
+            </MotionReveal>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <StaggerContainer
+            key={insightsTab}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            staggerDelay={0.1}
+          >
             {(insightsTab === 'news' ? newsItems : blogItems).map((item) => (
-              <div
-                key={item.id}
-                className="bg-white p-7 rounded-2xl border border-[#E5E7EB] shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between text-xs text-[#888888] mb-3">
-                    <span className="font-semibold text-[#00829B]">{item.category}</span>
-                    <span>{item.date}</span>
+              <StaggerItem key={item.id} direction="up">
+                <div className="h-full bg-white p-7 rounded-2xl border border-[#E5E7EB] shadow-sm hover:shadow-xl hover:border-[#00829B]/40 hover:-translate-y-2 transition-all duration-500 ease-out flex flex-col justify-between group">
+                  <div>
+                    <div className="flex items-center justify-between text-xs text-[#888888] mb-3">
+                      <span className="font-semibold text-[#00829B]">{item.category}</span>
+                      <span>{item.date}</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-[#1A1A1A] leading-snug mb-3 group-hover:text-[#00829B] transition-colors duration-300 cursor-pointer">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm text-[#666666] leading-relaxed mb-6">{item.desc}</p>
                   </div>
-                  <h3 className="text-lg font-bold text-[#1A1A1A] leading-snug mb-3 hover:text-[#00829B] transition-colors cursor-pointer">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-[#666666] leading-relaxed mb-6">{item.desc}</p>
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#00829B] group-hover:text-[#006C82] cursor-pointer">
+                    <span>Read Article</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1.5 transition-transform duration-300" />
+                  </div>
                 </div>
-                <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#00829B] hover:text-[#006C82] cursor-pointer">
-                  <span>Read Article</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
@@ -1181,16 +1234,16 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12 pt-14 sm:pt-20 lg:pt-28 pb-0">
           <div className="grid grid-cols-1 lg:grid-cols-[438px_minmax(0,1fr)] lg:items-end gap-10 lg:gap-x-16">
             {/* Meditrina Doctor Cutout */}
-            <div className="relative order-2 lg:order-1 mx-auto lg:mx-0 w-full max-w-[340px] sm:max-w-[400px] lg:w-[438px] lg:max-w-none shrink-0">
+            <MotionReveal direction="left" duration={0.9} distance={60} className="relative order-2 lg:order-1 mx-auto lg:mx-0 w-full max-w-[340px] sm:max-w-[400px] lg:w-[438px] lg:max-w-none shrink-0">
               <img
                 src="https://www.meditrinahospitals.com/images/home/about-doctor.webp"
                 alt="Meditrina doctor"
-                className="block h-auto w-full drop-shadow-2xl"
+                className="block h-auto w-full drop-shadow-2xl hover:scale-102 transition-transform duration-700 ease-out"
               />
-            </div>
+            </MotionReveal>
 
             {/* Content & Stats */}
-            <div className="order-1 lg:order-2 flex flex-col pb-8 sm:pb-12 lg:pb-24">
+            <MotionReveal direction="right" duration={0.9} distance={60} className="order-1 lg:order-2 flex flex-col pb-8 sm:pb-12 lg:pb-24">
               <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-normal leading-snug sm:leading-snug max-w-[774px]">
                 &ldquo;Our goal at InspireZest is simple — to bring world-class, specialized
                 healthcare closer to people. With expert teams, advanced technology, and a commitment
@@ -1201,45 +1254,45 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
                 <button
                   type="button"
                   onClick={() => onBookAppointment()}
-                  className="inline-flex items-center gap-3 text-sm sm:text-base font-semibold text-white bg-white/20 hover:bg-white/30 backdrop-blur-md px-6 py-3 rounded-full transition-all cursor-pointer"
+                  className="group inline-flex items-center gap-3 text-sm sm:text-base font-semibold text-white bg-white/20 hover:bg-white/30 hover:scale-105 active:scale-95 backdrop-blur-md px-6 py-3 rounded-full transition-all duration-300 cursor-pointer shadow-lg"
                 >
                   <span>Learn More About Us</span>
-                  <div className="w-6 h-6 rounded-full bg-white text-[#0B7BA8] flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-white text-[#0B7BA8] flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
                     <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </button>
               </div>
 
               {/* Milestones Row (600+ Beds, 98% Success Rate, 25+ Years) */}
-              <div className="mt-12 lg:mt-16 pt-8 border-t border-white/20 grid grid-cols-3 gap-6 sm:gap-12">
-                <div className="flex flex-col">
-                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
+              <StaggerContainer className="mt-12 lg:mt-16 pt-8 border-t border-white/20 grid grid-cols-3 gap-6 sm:gap-12" staggerDelay={0.15}>
+                <StaggerItem direction="up" className="flex flex-col group">
+                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight group-hover:scale-105 transition-transform origin-left">
                     600+
                   </span>
                   <span className="text-xs sm:text-sm font-medium text-white/80 mt-1">
                     Hospital Beds
                   </span>
-                </div>
+                </StaggerItem>
 
-                <div className="flex flex-col border-l border-white/20 pl-6 sm:pl-12">
-                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
+                <StaggerItem direction="up" className="flex flex-col border-l border-white/20 pl-6 sm:pl-12 group">
+                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight group-hover:scale-105 transition-transform origin-left">
                     98%
                   </span>
                   <span className="text-xs sm:text-sm font-medium text-white/80 mt-1">
                     Success Rate
                   </span>
-                </div>
+                </StaggerItem>
 
-                <div className="flex flex-col border-l border-white/20 pl-6 sm:pl-12">
-                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
+                <StaggerItem direction="up" className="flex flex-col border-l border-white/20 pl-6 sm:pl-12 group">
+                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight group-hover:scale-105 transition-transform origin-left">
                     25+
                   </span>
                   <span className="text-xs sm:text-sm font-medium text-white/80 mt-1">
                     Years of Experience
                   </span>
-                </div>
-              </div>
-            </div>
+                </StaggerItem>
+              </StaggerContainer>
+            </MotionReveal>
           </div>
         </div>
       </section>
@@ -1247,7 +1300,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
       {/* 11. EXPANDING CARE ACROSS INDIA */}
       <section className="py-16 sm:py-20 lg:py-24 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
+          <MotionReveal direction="left" className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
                 Hospital Network
@@ -1260,113 +1313,123 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
                 Male.
               </p>
             </div>
-          </div>
+          </MotionReveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" staggerDelay={0.1}>
             {/* Kollam */}
-            <div className="p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF9] hover:border-[#00829B] transition-all flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#00829B] bg-[#E6F3F5] px-2 py-0.5 rounded">
-                  Corporate Center
-                </span>
-                <h3 className="text-lg font-bold text-[#1A1A1A] mt-3">
-                  InspireZest Hospital, Kollam
-                </h3>
-                <p className="text-xs text-[#666666] mt-2 flex items-start gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#00829B] shrink-0 mt-0.5" />
-                  <span>2nd Floor, S N Junction, Velayudha Mansion, Junction, Karbala, Kollam</span>
-                </p>
-                <p className="text-xs font-semibold text-[#1A1A1A] mt-2">
-                  +91 9567333266
-                </p>
+            <StaggerItem direction="up">
+              <div className="h-full p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF9] hover:border-[#00829B] hover:shadow-xl hover:-translate-y-2 transition-all duration-500 ease-out flex flex-col justify-between group">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#00829B] bg-[#E6F3F5] px-2 py-0.5 rounded">
+                    Corporate Center
+                  </span>
+                  <h3 className="text-lg font-bold text-[#1A1A1A] mt-3 group-hover:text-[#00829B] transition-colors">
+                    InspireZest Hospital, Kollam
+                  </h3>
+                  <p className="text-xs text-[#666666] mt-2 flex items-start gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#00829B] shrink-0 mt-0.5" />
+                    <span>2nd Floor, S N Junction, Velayudha Mansion, Junction, Karbala, Kollam</span>
+                  </p>
+                  <p className="text-xs font-semibold text-[#1A1A1A] mt-2">
+                    +91 9567333266
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => onBookAppointment()}
+                    className="text-xs font-semibold text-[#00829B] hover:text-[#006C82] flex items-center gap-1.5 cursor-pointer group-hover:gap-2.5 transition-all"
+                  >
+                    <span>Book at Kollam</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => onBookAppointment()}
-                  className="text-xs font-semibold text-[#00829B] hover:text-[#006C82] flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>Book at Kollam</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
+            </StaggerItem>
 
             {/* Trivandrum */}
-            <div className="p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF9] hover:border-[#00829B] transition-all flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#22A06B] bg-[#E6F7EF] px-2 py-0.5 rounded">
-                  Super Specialty
-                </span>
-                <h3 className="text-lg font-bold text-[#1A1A1A] mt-3">
-                  InspireZest Hospital, Trivandrum
-                </h3>
-                <p className="text-xs text-[#666666] mt-2 flex items-start gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#22A06B] shrink-0 mt-0.5" />
-                  <span>Plamoodu, Pattom P O, Thiruvananthapuram - 695004</span>
-                </p>
-                <p className="text-xs font-semibold text-[#1A1A1A] mt-2">+91 9567333266</p>
+            <StaggerItem direction="up">
+              <div className="h-full p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF9] hover:border-[#22A06B] hover:shadow-xl hover:-translate-y-2 transition-all duration-500 ease-out flex flex-col justify-between group">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#22A06B] bg-[#E6F7EF] px-2 py-0.5 rounded">
+                    Super Specialty
+                  </span>
+                  <h3 className="text-lg font-bold text-[#1A1A1A] mt-3 group-hover:text-[#22A06B] transition-colors">
+                    InspireZest Hospital, Trivandrum
+                  </h3>
+                  <p className="text-xs text-[#666666] mt-2 flex items-start gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#22A06B] shrink-0 mt-0.5" />
+                    <span>Plamoodu, Pattom P O, Thiruvananthapuram - 695004</span>
+                  </p>
+                  <p className="text-xs font-semibold text-[#1A1A1A] mt-2">+91 9567333266</p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => onBookAppointment()}
+                    className="text-xs font-semibold text-[#00829B] hover:text-[#006C82] flex items-center gap-1.5 cursor-pointer group-hover:gap-2.5 transition-all"
+                  >
+                    <span>Book at Trivandrum</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => onBookAppointment()}
-                  className="text-xs font-semibold text-[#00829B] hover:text-[#006C82] flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>Book at Trivandrum</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
+            </StaggerItem>
 
             {/* Palakkad */}
-            <div className="p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF9] hover:border-[#00829B] transition-all flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#E9A23B] bg-[#FEF6E8] px-2 py-0.5 rounded">
-                  Cardiac & Trauma
-                </span>
-                <h3 className="text-lg font-bold text-[#1A1A1A] mt-3">
-                  InspireZest Hospital, Palakkad
-                </h3>
-                <p className="text-xs text-[#666666] mt-2 flex items-start gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#E9A23B] shrink-0 mt-0.5" />
-                  <span>Near Stadium Stand, Palakkad, Kerala - 678001</span>
-                </p>
-                <p className="text-xs font-semibold text-[#1A1A1A] mt-2">+91 9567333266</p>
+            <StaggerItem direction="up">
+              <div className="h-full p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF9] hover:border-[#E9A23B] hover:shadow-xl hover:-translate-y-2 transition-all duration-500 ease-out flex flex-col justify-between group">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#E9A23B] bg-[#FEF6E8] px-2 py-0.5 rounded">
+                    Cardiac & Trauma
+                  </span>
+                  <h3 className="text-lg font-bold text-[#1A1A1A] mt-3 group-hover:text-[#E9A23B] transition-colors">
+                    InspireZest Hospital, Palakkad
+                  </h3>
+                  <p className="text-xs text-[#666666] mt-2 flex items-start gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#E9A23B] shrink-0 mt-0.5" />
+                    <span>Near Stadium Stand, Palakkad, Kerala - 678001</span>
+                  </p>
+                  <p className="text-xs font-semibold text-[#1A1A1A] mt-2">+91 9567333266</p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => onBookAppointment()}
+                    className="text-xs font-semibold text-[#00829B] hover:text-[#006C82] flex items-center gap-1.5 cursor-pointer group-hover:gap-2.5 transition-all"
+                  >
+                    <span>Book at Palakkad</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => onBookAppointment()}
-                  className="text-xs font-semibold text-[#00829B] hover:text-[#006C82] flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>Book at Palakkad</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
+            </StaggerItem>
 
             {/* Maldives */}
-            <div className="p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF9] hover:border-[#00829B] transition-all flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#00829B] bg-[#E6F3F5] px-2 py-0.5 rounded">
-                  International Center
-                </span>
-                <h3 className="text-lg font-bold text-[#1A1A1A] mt-3">IGMH InspireZest, Maldives</h3>
-                <p className="text-xs text-[#666666] mt-2 flex items-start gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#00829B] shrink-0 mt-0.5" />
-                  <span>Kanbaa Aisaa Rani Higun, Malé, Maldives</span>
-                </p>
-                <p className="text-xs font-semibold text-[#1A1A1A] mt-2">+960 333 5335</p>
+            <StaggerItem direction="up">
+              <div className="h-full p-6 rounded-2xl border border-[#E5E7EB] bg-[#FAFAF9] hover:border-[#00829B] hover:shadow-xl hover:-translate-y-2 transition-all duration-500 ease-out flex flex-col justify-between group">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#00829B] bg-[#E6F3F5] px-2 py-0.5 rounded">
+                    International Center
+                  </span>
+                  <h3 className="text-lg font-bold text-[#1A1A1A] mt-3 group-hover:text-[#00829B] transition-colors">
+                    IGMH InspireZest, Maldives
+                  </h3>
+                  <p className="text-xs text-[#666666] mt-2 flex items-start gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#00829B] shrink-0 mt-0.5" />
+                    <span>Kanbaa Aisaa Rani Higun, Malé, Maldives</span>
+                  </p>
+                  <p className="text-xs font-semibold text-[#1A1A1A] mt-2">+960 333 5335</p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => onBookAppointment()}
+                    className="text-xs font-semibold text-[#00829B] hover:text-[#006C82] flex items-center gap-1.5 cursor-pointer group-hover:gap-2.5 transition-all"
+                  >
+                    <span>International Inquiries</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => onBookAppointment()}
-                  className="text-xs font-semibold text-[#00829B] hover:text-[#006C82] flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>International Inquiries</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-          </div>
+            </StaggerItem>
+          </StaggerContainer>
         </div>
       </section>
 

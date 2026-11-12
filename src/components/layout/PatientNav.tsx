@@ -371,14 +371,14 @@ export const PatientNav: React.FC<PatientNavProps> = ({
                 </div>
               </nav>
 
-              {/* Meditrina Exact Cyan Pill Button */}
+              {/* Meditrina Exact Cyan Pill Button with Paragon hover interaction */}
               <button
                 type="button"
                 onClick={onOpenBookingModal}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white text-[13px] font-bold tracking-tight shadow-md hover:shadow-cyan-900/30 transition-all cursor-pointer whitespace-nowrap"
+                className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white text-[13px] font-bold tracking-tight shadow-md hover:shadow-cyan-900/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer whitespace-nowrap overflow-hidden"
               >
                 <span>Book an Appointment</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
 
               {/* Patient Auth Profile or Login Button */}

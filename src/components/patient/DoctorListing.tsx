@@ -113,21 +113,23 @@ export const DoctorListing: React.FC<DoctorListingProps> = ({
           {filteredDoctors.map((doctor) => (
             <div
               key={doctor.id}
-              className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-xs hover:shadow-card hover:border-[#00829B]/30 transition-all duration-200 flex flex-col justify-between"
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm hover:shadow-xl hover:border-[#00829B]/40 hover:-translate-y-1.5 transition-all duration-300 ease-out flex flex-col justify-between group"
             >
               <div>
                 {/* Top: Photo, Badge, Name */}
                 <div className="flex items-start gap-4">
-                  <img
-                    src={doctor.profileImage}
-                    alt={doctor.name}
-                    className="w-20 h-20 rounded-xl object-cover border border-[#E5E7EB] shadow-2xs shrink-0"
-                  />
+                  <div className="w-20 h-20 rounded-xl overflow-hidden border border-[#E5E7EB] shadow-2xs shrink-0">
+                    <img
+                      src={doctor.profileImage}
+                      alt={doctor.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+                    />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <Badge variant="teal" size="sm">
                       {doctor.specializationName}
                     </Badge>
-                    <h3 className="text-base font-bold text-[#1A1A1A] mt-1.5 truncate">
+                    <h3 className="text-base font-bold text-[#1A1A1A] group-hover:text-[#00829B] transition-colors mt-1.5 truncate">
                       {doctor.name}
                     </h3>
                     <p className="text-xs text-[#666666] font-medium mt-0.5">
