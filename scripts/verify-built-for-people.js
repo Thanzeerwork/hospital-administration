@@ -22,3 +22,4 @@ const puppeteer = require('puppeteer');
   await browser.close();
   console.log('Screenshots taken');
 })();
+

@@ -48,3 +48,4 @@ const puppeteer = require('puppeteer');
   console.log('Live screenshots captured!');
   await browser.close();
 })();
+
