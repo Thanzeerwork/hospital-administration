@@ -67,8 +67,8 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
   const [searchLocation, setSearchLocation] = useState('Kollam');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 5 Pillars Interactive State
-  const [activePillar, setActivePillar] = useState(0);
+  // Built for People Carousel State (Meditrina Exact Slider)
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   // Insights & Updates Tab
   const [insightsTab, setInsightsTab] = useState<'news' | 'blogs'>('news');
@@ -81,67 +81,47 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
   const [showAllBlogsModal, setShowAllBlogsModal] = useState(false);
   const [showAllSpecialities, setShowAllSpecialities] = useState(false);
 
-  // Pillars Data
-  const pillars = [
+  // Built for People Slides Data (Exact Meditrina Content & Assets)
+  const builtForPeopleSlides = [
     {
       id: 0,
       title: 'Advanced Medical Technology',
-      subtitle:
+      description:
         'Equipped with modern infrastructure and cutting-edge technology to ensure accurate diagnosis and high-quality treatment.',
       image: 'https://www.meditrinahospitals.com/images/home/big-banner.webp',
-      points: [
-        'Advanced Biplane Digital Cathlab for cardiac & neuro interventions',
-        'State-of-the-art modular operation theatres with HEPA laminar air flow',
-        'High-resolution multi-slice CT and digital 1.5T MRI diagnostics',
-      ],
+      alt: 'Advanced medical technology at InspireZest Hospitals',
     },
     {
       id: 1,
       title: 'Accessible & Trusted Healthcare',
-      subtitle:
-        'Committed to providing high-quality, patient-centric healthcare accessible to diverse communities across India.',
+      description:
+        'Delivering reliable, ethical, and affordable healthcare without compromising on clinical standards.',
       image: 'https://www.meditrinahospitals.com/images/home/big-banner/accessible-trusted.webp',
-      points: [
-        'Network of 6+ tertiary multispecialty hospitals across India and Maldives',
-        'Empaneled with all major government and private health insurance schemes',
-        'Transparent pricing, ethical medical recommendations, and zero hidden costs',
-      ],
+      alt: 'InspireZest Hospitals building exterior',
     },
     {
       id: 2,
       title: 'Patient-First Care',
-      subtitle:
-        'Compassionate and personalized healthcare focused on patient comfort, safety, and long-term well-being.',
+      description:
+        'Personalized treatment focused on comfort, dignity, trust, delivering lasting wellbeing through compassionate individualized care.',
       image: 'https://www.meditrinahospitals.com/images/home/big-banner/patient-first.webp',
-      points: [
-        'Dedicated nurse-to-patient ratio ensuring round-the-clock attentive care',
-        'Comprehensive family counseling and post-discharge recovery guidance',
-        'Holistic patient recovery suites designed for tranquility and healing',
-      ],
+      alt: 'Patient-first compassionate care',
     },
     {
       id: 3,
       title: 'Expert Specialists',
-      subtitle:
-        'A dedicated team of senior clinicians, surgeons, and nurses delivering evidence-based clinical excellence.',
+      description:
+        'Experienced specialists collaborating to deliver comprehensive multidisciplinary medical care with precision, compassion and excellence.',
       image: 'https://www.meditrinahospitals.com/images/home/big-banner/expert-specialists.webp',
-      points: [
-        'Over 250+ internationally trained specialists and fellowship surgeons',
-        'Multidisciplinary tumor boards and complex cardiac clinical panels',
-        'Continuous medical education aligning with global clinical best practices',
-      ],
+      alt: 'Expert clinical specialists',
     },
     {
       id: 4,
       title: '24/7 Emergency Care',
-      subtitle:
-        'Round-the-clock emergency casualty, trauma center, cardiac cathlab, and advanced intensive care.',
+      description:
+        'Providing round-the-clock emergency care with rapid response when every second matters most for everyone.',
       image: 'https://www.meditrinahospitals.com/images/home/big-banner/emergency-care.webp',
-      points: [
-        'Instant door-to-balloon time of under 45 minutes for acute myocardial infarction',
-        'Level-1 trauma resuscitation bay with on-duty trauma surgeons',
-        'Advanced Life Support (ALS) ambulances equipped with onboard tele-monitoring',
-      ],
+      alt: '24/7 emergency care',
     },
   ];
 
@@ -929,99 +909,146 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
         </div>
       </section>
 
-      {/* 6. BUILT FOR PEOPLE. PROVEN BY OUTCOMES (5 Interactive Pillar Tabs with Directional Reveal) */}
-      <section id="about" className="py-16 sm:py-20 lg:py-28 bg-white overflow-hidden scroll-mt-20">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
-          <MotionReveal direction="left" duration={0.8}>
-            <div className="max-w-2xl mb-12">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
-                Our Core Philosophy
-              </span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1A1A1A] tracking-tight leading-tight">
-                Built for people.
-                <br />
-                <span className="text-[#00829B]">Proven by outcomes.</span>
-              </h2>
-              <p className="text-sm sm:text-base text-[#666666] mt-4">
-                Every decision we make is grounded in clinical excellence, patient dignity, and a
-                relentless drive to improve outcomes.
-              </p>
-            </div>
-          </MotionReveal>
+      {/* 6. BUILT FOR PEOPLE. PROVEN BY OUTCOMES (Exact Meditrina Full-Bleed Slider) */}
+      <section id="about" className="relative overflow-hidden text-white scroll-mt-20">
+        {/* Slides Carousel Wrapper */}
+        <div className="overflow-hidden">
+          <div
+            className="flex transition-transform duration-700 ease-out"
+            style={{
+              transform: `translate3d(-${currentSlide * 100}%, 0px, 0px)`,
+            }}
+          >
+            {builtForPeopleSlides.map((slide) => (
+              <div key={slide.id} className="relative min-w-0 shrink-0 grow-0 basis-full">
+                <div className="relative min-h-[520px] sm:min-h-[580px] md:min-h-[620px] lg:min-h-[660px] xl:min-h-[700px] w-full">
+                  {/* Background Image */}
+                  <img
+                    src={slide.image}
+                    alt={slide.alt}
+                    className="absolute inset-0 h-full w-full object-cover object-center"
+                  />
 
-          {/* Interactive Navigation Pills with Smooth Hover States */}
-          <MotionReveal direction="up" delay={0.1} duration={0.7}>
-            <div className="flex flex-wrap gap-2 sm:gap-3 mb-10 pb-2 border-b border-[#EAEAEA]">
-              {pillars.map((p, idx) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setActivePillar(idx)}
-                  className={`px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
-                    activePillar === idx
-                      ? 'bg-[#00829B] text-white shadow-md'
-                      : 'bg-[#F2F4F3] text-[#4A4A4A] hover:bg-[#E5E7EB] hover:text-[#00829B]'
-                  }`}
-                >
-                  {p.title}
-                </button>
-              ))}
-            </div>
-          </MotionReveal>
+                  {/* Exact Meditrina Gradient Overlays */}
+                  <div
+                    className="absolute inset-0 bg-[linear-gradient(90deg,_#000_-13%,_rgba(0,0,0,0)_122.55%)]"
+                    aria-hidden="true"
+                  />
+                  <div
+                    className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/25"
+                    aria-hidden="true"
+                  />
 
-          {/* Tab Content Display with Left/Right Synchronized Motion */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            <MotionReveal direction="left" delay={0.15} duration={0.8} className="lg:col-span-5 space-y-6">
-              <span className="text-xs font-bold text-[#00829B] tracking-wider uppercase">
-                Pillar {activePillar + 1} of 5
-              </span>
-              <h3 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] leading-snug">
-                {pillars[activePillar].title}
-              </h3>
-              <p className="text-base text-[#555555] leading-relaxed">
-                {pillars[activePillar].subtitle}
-              </p>
+                  {/* Content Container Aligned Exactly with Meditrina Layout */}
+                  <div className="mx-auto w-full max-w-[90rem] 2xl:max-w-[110rem] px-4 sm:px-8 lg:px-10 2xl:px-15 3xl:max-w-[120rem] 3xl:px-20 relative z-10 flex min-h-[inherit] flex-col justify-center py-8 pb-24 sm:py-10 sm:pb-28 md:py-12 md:pb-28 lg:py-16 lg:pb-32">
+                    <div className="min-w-0 max-w-[640px] 3xl:max-w-[720px] mt-0 md:mt-10">
+                      <h2 className="mb-4 text-[1.75rem] leading-[1.15] font-medium text-white sm:mb-5 sm:text-3xl md:mb-6 md:text-[2.25rem] lg:text-[40px]">
+                        Built for people.
+                        <br />
+                        Proven by outcomes.
+                      </h2>
+                      <p className="mb-5 max-w-[520px] text-[15px] leading-relaxed font-medium text-white sm:mb-8 sm:text-base md:mb-10 md:text-[17px] lg:mb-12 lg:text-lg">
+                        Every decision we make is grounded in clinical excellence, patient dignity, and
+                        a relentless drive to improve outcomes.
+                      </p>
 
-              {/* Clinical Highlights Points */}
-              <ul className="space-y-3 pt-2">
-                {pillars[activePillar].points.map((pt, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-[#333333]">
-                    <div className="w-5 h-5 rounded-full bg-[#E6F3F5] text-[#00829B] flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-3.5 h-3.5" />
+                      {/* Thin white divider line */}
+                      <div
+                        className="mb-5 max-w-[490px] border-t border-white/35 sm:mb-8 md:mb-10 lg:mb-12"
+                        aria-hidden="true"
+                      />
+
+                      {/* Slide Sub-heading */}
+                      <h3 className="mb-2 text-base font-semibold text-white sm:mb-3 sm:text-xl md:text-[1.35rem] lg:text-[26px]">
+                        {slide.title}
+                      </h3>
+
+                      {/* Slide Description */}
+                      <p className="mb-6 max-w-[410px] text-[15px] leading-relaxed font-medium text-white/95 sm:mb-8 sm:text-base md:mb-10 md:text-[17px] lg:mb-12">
+                        {slide.description}
+                      </p>
+
+                      {/* Action Button: Book an Appointment */}
+                      <button
+                        type="button"
+                        onClick={() => onBookAppointment()}
+                        className="group inline-flex items-center gap-3 rounded-full border border-white text-white hover:border-white hover:bg-white hover:text-black px-7 py-3 text-sm sm:text-base font-medium transition-all duration-300 ease-out cursor-pointer shadow-md"
+                      >
+                        <span>Book an Appointment</span>
+                        <span className="relative inline-flex h-4 w-4 shrink-0 overflow-hidden" aria-hidden="true">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="group-hover:translate-x-1 transition-transform duration-300"
+                          >
+                            <path
+                              d="M12.175 9H0V7H12.175L6.575 1.4L8 0L16 8L8 16L6.575 14.6L12.175 9Z"
+                              fill="currentColor"
+                            />
+                          </svg>
+                        </span>
+                      </button>
                     </div>
-                    <span>{pt}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="pt-4">
-                <button
-                  type="button"
-                  onClick={() => onBookAppointment()}
-                  className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#00829B] hover:bg-[#006C82] hover:scale-105 active:scale-95 text-white font-semibold text-sm transition-all duration-300 shadow-md cursor-pointer"
-                >
-                  <span>Experience InspireZest Care</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-            </MotionReveal>
-
-            <MotionReveal direction="right" delay={0.2} duration={0.8} className="lg:col-span-7">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-gray-100 aspect-[800/520] bg-gray-100 group">
-                <img
-                  key={pillars[activePillar].image}
-                  src={pillars[activePillar].image}
-                  alt={pillars[activePillar].title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                />
-                <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 bg-black/60 backdrop-blur-md p-4 rounded-xl text-white text-xs sm:text-sm">
-                  <p className="font-semibold">{pillars[activePillar].title}</p>
-                  <p className="text-white/70 text-xs mt-0.5">
-                    InspireZest Hospital Network • Kerala & Pan-India
-                  </p>
+                  </div>
                 </div>
               </div>
-            </MotionReveal>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom-right Slider Controls */}
+        <div className="mx-auto w-full max-w-[90rem] 2xl:max-w-[110rem] px-4 sm:px-8 lg:px-10 2xl:px-15 3xl:max-w-[120rem] 3xl:px-20 pointer-events-none absolute inset-x-0 bottom-0 z-10 pb-6 sm:pb-8 md:pb-10 lg:pb-12 xl:pb-14">
+          <div className="pointer-events-auto ml-auto flex w-fit items-center gap-2.5 sm:gap-3">
+            {/* Previous Slide Button */}
+            <button
+              type="button"
+              disabled={currentSlide === 0}
+              onClick={() => setCurrentSlide((prev) => Math.max(0, prev - 1))}
+              aria-label="Previous slide"
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 ${
+                currentSlide === 0
+                  ? 'cursor-not-allowed border-white/25 bg-white/10 text-white/40'
+                  : 'cursor-pointer border-white/80 bg-white text-zinc-700 hover:bg-white/90 hover:scale-105 active:scale-95 shadow-md'
+              }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M10 3L5 8L10 13"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+
+            {/* Next Slide Button */}
+            <button
+              type="button"
+              disabled={currentSlide === builtForPeopleSlides.length - 1}
+              onClick={() =>
+                setCurrentSlide((prev) => Math.min(builtForPeopleSlides.length - 1, prev + 1))
+              }
+              aria-label="Next slide"
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-300 ${
+                currentSlide === builtForPeopleSlides.length - 1
+                  ? 'cursor-not-allowed border-white/25 bg-white/10 text-white/40'
+                  : 'cursor-pointer border-white/80 bg-white text-zinc-700 hover:bg-white/90 hover:scale-105 active:scale-95 shadow-md'
+              }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M6 3L11 8L6 13"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       </section>
