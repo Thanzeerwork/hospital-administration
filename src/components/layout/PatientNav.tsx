@@ -13,11 +13,8 @@ import {
   X,
   MapPin,
   ChevronDown,
+  ChevronRight,
   ArrowRight,
-  ShieldCheck,
-  Award,
-  Sparkles,
-  HeartPulse,
 } from 'lucide-react';
 
 interface PatientNavProps {
@@ -36,13 +33,13 @@ export const PatientNav: React.FC<PatientNavProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  // Dropdown states
-  const [hospitalDropdownOpen, setHospitalDropdownOpen] = useState(false);
-  const [specialtiesDropdownOpen, setSpecialtiesDropdownOpen] = useState(false);
-  const [aboutDropdownOpen, setAboutDropdownOpen] = useState(false);
-  const [resourcesDropdownOpen, setResourcesDropdownOpen] = useState(false);
+  // Active Expanding Mega Menu state: 'hospitals' | 'specialities' | 'about' | 'resources' | null
+  const [activeMegaMenu, setActiveMegaMenu] = useState<
+    'hospitals' | 'specialities' | 'about' | 'resources' | null
+  >(null);
 
   const navRef = useRef<HTMLDivElement>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Scroll detection
   useEffect(() => {
@@ -54,14 +51,11 @@ export const PatientNav: React.FC<PatientNavProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Click outside to close dropdowns
+  // Click outside to close menus
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
-        setHospitalDropdownOpen(false);
-        setSpecialtiesDropdownOpen(false);
-        setAboutDropdownOpen(false);
-        setResourcesDropdownOpen(false);
+        setActiveMegaMenu(null);
         setProfileDropdownOpen(false);
       }
     };
@@ -69,17 +63,31 @@ export const PatientNav: React.FC<PatientNavProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const closeAllDropdowns = () => {
-    setHospitalDropdownOpen(false);
-    setSpecialtiesDropdownOpen(false);
-    setAboutDropdownOpen(false);
-    setResourcesDropdownOpen(false);
+  const handleMouseEnter = (menu: 'hospitals' | 'specialities' | 'about' | 'resources') => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setActiveMegaMenu(menu);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = setTimeout(() => {
+      setActiveMegaMenu(null);
+    }, 180);
+  };
+
+  const handlePanelMouseEnter = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+  };
+
+  const closeAllMenus = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setActiveMegaMenu(null);
     setProfileDropdownOpen(false);
+    setMobileMenuOpen(false);
   };
 
   const scrollToSection = (sectionId: string) => {
-    closeAllDropdowns();
-    setMobileMenuOpen(false);
+    closeAllMenus();
     if (pathname === '/' || pathname === '/patient-portal') {
       const el = document.getElementById(sectionId);
       if (el) {
@@ -90,13 +98,50 @@ export const PatientNav: React.FC<PatientNavProps> = ({
     window.location.href = `/patient-portal#${sectionId}`;
   };
 
+  // Hospital Network Locations
   const hospitalsList = [
     { name: 'InspireZest Hospital, Kollam', city: 'Karbala, Kollam, Kerala' },
     { name: 'InspireZest Hospital, Trivandrum', city: 'Trivandrum, Kerala' },
     { name: 'InspireZest Hospital, Palakkad', city: 'Palakkad, Kerala' },
-    { name: 'InspireZest Hospital, Panchkula', city: 'Panchkula, Haryana' },
     { name: 'InspireZest Hospital, Ambala', city: 'Ambala, Haryana' },
+    { name: 'InspireZest Hospital, Faridabad', city: 'Faridabad, Haryana' },
     { name: 'InspireZest Hospital, Jamshedpur', city: 'Jamshedpur, Jharkhand' },
+    { name: 'InspireZest Hospital, Panchkula', city: 'Panchkula, Haryana' },
+    { name: 'InspireZest Hospital, Gurugram', city: 'Gurugram, Haryana' },
+    { name: 'InspireZest Hospital, Dehradun', city: 'Dehradun, Uttarakhand' },
+    { name: 'InspireZest Hospital, Male', city: 'Male, Maldives' },
+  ];
+
+  // 21 Meditrina Specialities in 3 columns
+  const specialitiesCol1 = [
+    'Anaesthesiology & Critical Care',
+    'Clinical Pathology',
+    'ENT',
+    'General Surgery',
+    'Neurology',
+    'Orthopaedics',
+    'Pulmonology',
+    'Urology',
+  ];
+
+  const specialitiesCol2 = [
+    'Cardiology',
+    'Dentistry',
+    'Gastroenterology',
+    'Infertility and Reproductive Medicine',
+    'Neurosurgery',
+    'Paediatrics & Neonatology',
+    'Radiology',
+  ];
+
+  const specialitiesCol3 = [
+    'Cardiothoracic Vascular Surgery',
+    'Dermatology',
+    'General Medicine',
+    'Nephrology',
+    'Obstetrics & Gynaecology',
+    'Psychiatry',
+    'Surgical Gastroenterology',
   ];
 
   const isHomePage = pathname === '/patient-portal' || pathname === '/';
@@ -104,27 +149,27 @@ export const PatientNav: React.FC<PatientNavProps> = ({
   return (
     <header
       ref={navRef}
+      onMouseLeave={handleMouseLeave}
       className={`z-50 transition-all duration-300 ${
         isHomePage
           ? `fixed top-0 left-0 right-0 ${
-              isScrolled
-                ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-[#EAEAEA]'
-                : 'bg-transparent'
+              isScrolled || activeMegaMenu
+                ? 'bg-[#FAFAFA] shadow-sm border-b border-[#EAEAEA] text-[#1A1A1A]'
+                : 'bg-transparent text-[#1A1A1A]'
             }`
-          : 'sticky top-0 bg-white border-b border-[#EAEAEA] shadow-xs'
+          : 'sticky top-0 bg-[#FAFAFA] border-b border-[#EAEAEA] shadow-xs text-[#1A1A1A]'
       }`}
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 2xl:px-14">
         <div className="flex items-center justify-between py-2.5 sm:py-3 lg:py-2">
           {/* 1. Left Logo (InspireZest Official Logo) */}
           <div className="shrink-0 flex items-center pr-4 xl:pr-8 py-0.5">
-            <Link href="/patient-portal" onClick={closeAllDropdowns} className="inline-block hover:opacity-95 transition-opacity">
-              <InspireZestLogo
-                variant="full"
-                size="lg"
-                onDark={false}
-                priority
-              />
+            <Link
+              href="/patient-portal"
+              onClick={closeAllMenus}
+              className="inline-block hover:opacity-95 transition-opacity"
+            >
+              <InspireZestLogo variant="full" size="lg" onDark={false} priority />
             </Link>
           </div>
 
@@ -134,7 +179,9 @@ export const PatientNav: React.FC<PatientNavProps> = ({
             <div className="flex items-center gap-4 text-[12px] font-medium text-[#1A1A1A] pb-1.5 pt-0.5">
               {/* Location Pill */}
               <div
-                onClick={() => setHospitalDropdownOpen(!hospitalDropdownOpen)}
+                onClick={() =>
+                  setActiveMegaMenu((prev) => (prev === 'hospitals' ? null : 'hospitals'))
+                }
                 className="flex items-center gap-1 hover:text-[#00829B] transition-colors cursor-pointer"
               >
                 <MapPin className="w-3.5 h-3.5 text-[#1A1A1A]" />
@@ -182,192 +229,113 @@ export const PatientNav: React.FC<PatientNavProps> = ({
             <div className="flex items-center gap-6 xl:gap-8 pt-1 w-full justify-end">
               <nav className="flex items-center gap-5 xl:gap-7 text-[14px] font-medium text-[#1A1A1A]">
                 {/* 1. Our Hospitals ⌵ */}
-                <div className="relative">
+                <div
+                  className="relative py-2"
+                  onMouseEnter={() => handleMouseEnter('hospitals')}
+                >
                   <button
                     type="button"
-                    onClick={() => {
-                      setHospitalDropdownOpen(!hospitalDropdownOpen);
-                      setSpecialtiesDropdownOpen(false);
-                      setAboutDropdownOpen(false);
-                      setResourcesDropdownOpen(false);
-                    }}
-                    className="flex items-center gap-1 hover:text-[#00829B] py-1.5 transition-colors cursor-pointer"
+                    onClick={() =>
+                      setActiveMegaMenu((prev) => (prev === 'hospitals' ? null : 'hospitals'))
+                    }
+                    className={`flex items-center gap-1 py-1.5 transition-colors cursor-pointer ${
+                      activeMegaMenu === 'hospitals' ? 'text-[#00829B]' : 'hover:text-[#00829B]'
+                    }`}
                   >
                     <span>Our Hospitals</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-[#555555]" />
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        activeMegaMenu === 'hospitals'
+                          ? 'rotate-180 text-[#00829B]'
+                          : 'text-[#555555]'
+                      }`}
+                    />
                   </button>
-
-                  {hospitalDropdownOpen && (
-                    <div className="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-[#E5E7EB] py-2 z-50 animate-fade-in">
-                      <p className="px-4 py-1.5 text-[10px] font-bold text-[#888] uppercase tracking-wider">
-                        Hospital Locations
-                      </p>
-                      {hospitalsList.map((h, i) => (
-                        <div
-                          key={i}
-                          onClick={() => setHospitalDropdownOpen(false)}
-                          className="px-4 py-2 hover:bg-[#F4F6F6] cursor-pointer"
-                        >
-                          <p className="text-xs font-bold text-[#1A1A1A]">{h.name}</p>
-                          <p className="text-[11px] text-[#777]">{h.city}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* 2. Specialities ⌵ */}
-                <div className="relative">
+                <div
+                  className="relative py-2"
+                  onMouseEnter={() => handleMouseEnter('specialities')}
+                >
                   <button
                     type="button"
-                    onClick={() => {
-                      setSpecialtiesDropdownOpen(!specialtiesDropdownOpen);
-                      setHospitalDropdownOpen(false);
-                      setAboutDropdownOpen(false);
-                      setResourcesDropdownOpen(false);
-                    }}
-                    className="flex items-center gap-1 hover:text-[#00829B] py-1.5 transition-colors cursor-pointer"
+                    onClick={() =>
+                      setActiveMegaMenu((prev) => (prev === 'specialities' ? null : 'specialities'))
+                    }
+                    className={`flex items-center gap-1 py-1.5 transition-colors cursor-pointer ${
+                      activeMegaMenu === 'specialities'
+                        ? 'text-[#00829B]'
+                        : 'hover:text-[#00829B]'
+                    }`}
                   >
                     <span>Specialities</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-[#555555]" />
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        activeMegaMenu === 'specialities'
+                          ? 'rotate-180 text-[#00829B]'
+                          : 'text-[#555555]'
+                      }`}
+                    />
                   </button>
-
-                  {specialtiesDropdownOpen && (
-                    <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-[#E5E7EB] py-2 z-50 animate-fade-in">
-                      <button
-                        type="button"
-                        onClick={() => scrollToSection('specialities')}
-                        className="w-full text-left block px-4 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#F4F6F6] hover:text-[#00829B]"
-                      >
-                        Cardiology & Cathlab
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => scrollToSection('specialities')}
-                        className="w-full text-left block px-4 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#F4F6F6] hover:text-[#00829B]"
-                      >
-                        Paediatrics & Neonatology
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => scrollToSection('specialities')}
-                        className="w-full text-left block px-4 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#F4F6F6] hover:text-[#00829B]"
-                      >
-                        Obstetrics & Gynaecology
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => scrollToSection('specialities')}
-                        className="w-full text-left block px-4 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#F4F6F6] hover:text-[#00829B]"
-                      >
-                        Orthopaedics & Spine
-                      </button>
-                      <div className="border-t border-gray-100 mt-1 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => scrollToSection('specialities')}
-                          className="w-full text-left block px-4 py-1.5 text-[11px] font-bold text-[#00829B]"
-                        >
-                          View all 22+ Specialities →
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* 3. About ⌵ */}
-                <div className="relative">
+                <div
+                  className="relative py-2"
+                  onMouseEnter={() => handleMouseEnter('about')}
+                >
                   <button
                     type="button"
-                    onClick={() => {
-                      setAboutDropdownOpen(!aboutDropdownOpen);
-                      setHospitalDropdownOpen(false);
-                      setSpecialtiesDropdownOpen(false);
-                      setResourcesDropdownOpen(false);
-                    }}
-                    className="flex items-center gap-1 hover:text-[#00829B] py-1.5 transition-colors cursor-pointer"
+                    onClick={() =>
+                      setActiveMegaMenu((prev) => (prev === 'about' ? null : 'about'))
+                    }
+                    className={`flex items-center gap-1 py-1.5 transition-colors cursor-pointer ${
+                      activeMegaMenu === 'about' ? 'text-[#00829B]' : 'hover:text-[#00829B]'
+                    }`}
                   >
                     <span>About</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-[#555555]" />
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        activeMegaMenu === 'about' ? 'rotate-180 text-[#00829B]' : 'text-[#555555]'
+                      }`}
+                    />
                   </button>
-
-                  {aboutDropdownOpen && (
-                    <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-[#E5E7EB] py-2 z-50 animate-fade-in">
-                      <button
-                        type="button"
-                        onClick={() => scrollToSection('about')}
-                        className="w-full text-left block px-4 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#F4F6F6] hover:text-[#00829B]"
-                      >
-                        About InspireZest Hospital
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => scrollToSection('about')}
-                        className="w-full text-left block px-4 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#F4F6F6] hover:text-[#00829B]"
-                      >
-                        Vision, Mission & Leadership
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => scrollToSection('about')}
-                        className="w-full text-left block px-4 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#F4F6F6] hover:text-[#00829B]"
-                      >
-                        NABH & NABL Accreditations
-                      </button>
-                    </div>
-                  )}
                 </div>
 
                 {/* 4. Find a Doctor (No Chevron) */}
                 <Link
                   href="/patient-portal/doctors"
-                  onClick={closeAllDropdowns}
+                  onMouseEnter={() => setActiveMegaMenu(null)}
+                  onClick={closeAllMenus}
                   className="hover:text-[#00829B] py-1.5 transition-colors"
                 >
                   Find a Doctor
                 </Link>
 
                 {/* 5. Resources ⌵ */}
-                <div className="relative">
+                <div
+                  className="relative py-2"
+                  onMouseEnter={() => handleMouseEnter('resources')}
+                >
                   <button
                     type="button"
-                    onClick={() => {
-                      setResourcesDropdownOpen(!resourcesDropdownOpen);
-                      setHospitalDropdownOpen(false);
-                      setSpecialtiesDropdownOpen(false);
-                      setAboutDropdownOpen(false);
-                    }}
-                    className="flex items-center gap-1 hover:text-[#00829B] py-1.5 transition-colors cursor-pointer"
+                    onClick={() =>
+                      setActiveMegaMenu((prev) => (prev === 'resources' ? null : 'resources'))
+                    }
+                    className={`flex items-center gap-1 py-1.5 transition-colors cursor-pointer ${
+                      activeMegaMenu === 'resources' ? 'text-[#00829B]' : 'hover:text-[#00829B]'
+                    }`}
                   >
                     <span>Resources</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-[#555555]" />
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        activeMegaMenu === 'resources'
+                          ? 'rotate-180 text-[#00829B]'
+                          : 'text-[#555555]'
+                      }`}
+                    />
                   </button>
-
-                  {resourcesDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-[#E5E7EB] py-2 z-50 animate-fade-in">
-                      <button
-                        type="button"
-                        onClick={() => scrollToSection('packages')}
-                        className="w-full text-left block px-4 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#F4F6F6] hover:text-[#00829B]"
-                      >
-                        Health Packages
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => scrollToSection('updates')}
-                        className="w-full text-left block px-4 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#F4F6F6] hover:text-[#00829B]"
-                      >
-                        Updates & Breakthroughs
-                      </button>
-                      <Link
-                        href="/patient-portal/appointments"
-                        onClick={closeAllDropdowns}
-                        className="block px-4 py-2 text-xs font-medium text-[#1A1A1A] hover:bg-[#F4F6F6] hover:text-[#00829B]"
-                      >
-                        My Consultations
-                      </Link>
-                    </div>
-                  )}
                 </div>
               </nav>
 
@@ -415,7 +383,7 @@ export const PatientNav: React.FC<PatientNavProps> = ({
                           setProfileDropdownOpen(false);
                           logout('patient');
                         }}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs text-[#DC5555] hover:bg-red-50 text-left"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs text-[#DC5555] hover:bg-red-50 text-left cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Sign Out</span>
@@ -457,6 +425,427 @@ export const PatientNav: React.FC<PatientNavProps> = ({
           </div>
         </div>
       </div>
+
+      {/* FULL-WIDTH MEGA MENU EXPANDING CONTAINER (Exact Meditrina Layout & Structure) */}
+      {activeMegaMenu && (
+        <div
+          onMouseEnter={handlePanelMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          className="absolute top-full left-0 right-0 z-40 bg-[#FAFAFA] text-black border-b border-gray-200/90 shadow-2xl transition-all duration-200 animate-in fade-in"
+        >
+          <div className="mx-auto w-full max-w-[90rem] 2xl:max-w-[110rem] px-4 sm:px-8 lg:px-10 2xl:px-15 3xl:max-w-[120rem] 3xl:px-20 py-10 lg:py-14">
+            {/* 1. OUR HOSPITALS MEGA MENU */}
+            {activeMegaMenu === 'hospitals' && (
+              <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] lg:grid-cols-[380px_1fr] gap-12 lg:gap-16 items-start">
+                <div>
+                  <h3 className="mb-6 text-[36px] lg:text-[40px] leading-[1.05] font-medium text-[#00829B]">
+                    Where We Serve
+                  </h3>
+                  <div className="relative h-[200px] w-[310px] rounded-xl overflow-hidden shadow-sm">
+                    <img
+                      src="https://www.meditrinahospitals.com/images/home/our-hospital-nav.webp"
+                      alt="InspireZest hospital building"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_1px_240px] gap-8 md:gap-12 md:pl-4">
+                  <div>
+                    <h4 className="mb-8 text-xl font-semibold leading-none text-black">Our Hospitals</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-5 text-[15px] font-medium">
+                      {hospitalsList.map((h, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            closeAllMenus();
+                            scrollToSection('contact');
+                          }}
+                          className="text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                        >
+                          {h.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="hidden w-px self-stretch bg-zinc-300 md:block" aria-hidden="true" />
+
+                  <div className="md:pl-4">
+                    <h4 className="mb-8 text-xl font-semibold leading-none text-black">Quick Access</h4>
+                    <div className="space-y-5 text-[15px] font-medium">
+                      <Link
+                        href="/patient-portal/doctors"
+                        onClick={closeAllMenus}
+                        className="block text-black hover:text-[#00829B] transition-colors"
+                      >
+                        Find a Doctor
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('packages')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Health Checkup Packages
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeAllMenus();
+                          onOpenBookingModal?.();
+                        }}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Book an Appointment
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('facilities')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        International Patients
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('about')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        FAQ
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 2. SPECIALITIES MEGA MENU */}
+            {activeMegaMenu === 'specialities' && (
+              <div className="grid grid-cols-1 md:grid-cols-[380px_1fr] lg:grid-cols-[410px_1fr] gap-12 lg:gap-16 items-start">
+                <div className="max-w-[390px]">
+                  <h3 className="mb-6 text-[36px] lg:text-[40px] leading-[1.05] font-medium text-[#00829B]">
+                    Specialized Care for Every Stage of Life
+                  </h3>
+                  <p className="mb-8 text-[15px] leading-relaxed font-medium text-black">
+                    Explore InspireZest’s advanced medical specialties, delivering expert-led treatment,
+                    modern technology, and patient-focused care across every discipline.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('specialities')}
+                    className="group inline-flex items-center gap-3 text-base font-semibold text-black cursor-pointer"
+                  >
+                    <span className="border-b border-transparent group-hover:border-black transition-all">
+                      View Specialities
+                    </span>
+                    <div className="w-6 h-6 rounded-full bg-[#00829B] group-hover:bg-[#006C82] text-white flex items-center justify-center transition-transform group-hover:scale-110">
+                      <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                    </div>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-10 gap-y-5 text-[15px] font-medium">
+                  {/* Column 1 */}
+                  <div className="space-y-4">
+                    {specialitiesCol1.map((spec, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          closeAllMenus();
+                          window.location.href = `/patient-portal/doctors?category=${encodeURIComponent(spec)}`;
+                        }}
+                        className="block w-full text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        {spec}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Column 2 */}
+                  <div className="space-y-4">
+                    {specialitiesCol2.map((spec, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          closeAllMenus();
+                          window.location.href = `/patient-portal/doctors?category=${encodeURIComponent(spec)}`;
+                        }}
+                        className="block w-full text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        {spec}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Column 3 */}
+                  <div className="space-y-4">
+                    {specialitiesCol3.map((spec, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          closeAllMenus();
+                          window.location.href = `/patient-portal/doctors?category=${encodeURIComponent(spec)}`;
+                        }}
+                        className="block w-full text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        {spec}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3. ABOUT MEGA MENU */}
+            {activeMegaMenu === 'about' && (
+              <div className="grid grid-cols-1 md:grid-cols-[360px_1fr] lg:grid-cols-[395px_1fr] gap-12 lg:gap-16 items-start">
+                <div className="max-w-[380px]">
+                  <h3 className="mb-6 text-[36px] lg:text-[40px] leading-[1.05] font-medium text-[#00829B]">
+                    Driven by Care.
+                    <br />
+                    Defined by Excellence.
+                  </h3>
+                  <p className="mb-8 text-[15px] leading-relaxed font-medium text-black">
+                    Learn more about InspireZest's journey, values, leadership, and commitment to
+                    advanced patient-centered healthcare.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('about')}
+                    className="group inline-flex items-center gap-3 text-base font-semibold text-black cursor-pointer"
+                  >
+                    <span className="border-b border-transparent group-hover:border-black transition-all">
+                      Learn More About Us
+                    </span>
+                    <div className="w-6 h-6 rounded-full bg-[#00829B] group-hover:bg-[#006C82] text-white flex items-center justify-center transition-transform group-hover:scale-110">
+                      <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                    </div>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_1px_240px] gap-8 md:gap-12 md:pl-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6 text-[15px] font-medium">
+                    <div className="space-y-6">
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('about')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        InspireZest Group
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('doctors')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Leadership
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('about')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Quality Policy
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('updates')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        What's New
+                      </button>
+                    </div>
+
+                    <div className="space-y-6">
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('facilities')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Facilities
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('contact')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Careers
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('contact')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Contact
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="hidden w-px self-stretch bg-zinc-300 md:block" aria-hidden="true" />
+
+                  <div className="md:pl-4">
+                    <h4 className="mb-8 text-xl font-semibold leading-none text-black">Quick Access</h4>
+                    <div className="space-y-5 text-[15px] font-medium">
+                      <Link
+                        href="/patient-portal/doctors"
+                        onClick={closeAllMenus}
+                        className="block text-black hover:text-[#00829B] transition-colors"
+                      >
+                        Find a Doctor
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('packages')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Health Checkup Packages
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeAllMenus();
+                          onOpenBookingModal?.();
+                        }}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Book an Appointment
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('facilities')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        International Patients
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('about')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        FAQ
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 4. RESOURCES MEGA MENU */}
+            {activeMegaMenu === 'resources' && (
+              <div className="grid grid-cols-1 md:grid-cols-[360px_1fr] lg:grid-cols-[395px_1fr] gap-12 lg:gap-16 items-start">
+                <div className="max-w-[380px]">
+                  <h3 className="mb-6 text-[36px] lg:text-[40px] leading-[1.05] font-medium text-[#00829B]">
+                    Your Guide to Better Health
+                  </h3>
+                  <p className="mb-8 text-[15px] leading-relaxed font-medium text-black">
+                    Explore expert health resources, patient guides, awareness campaigns, and educational
+                    content designed to help you make informed healthcare decisions.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('updates')}
+                    className="group inline-flex items-center gap-3 text-base font-semibold text-black cursor-pointer"
+                  >
+                    <span className="border-b border-transparent group-hover:border-black transition-all">
+                      Explore Resources
+                    </span>
+                    <div className="w-6 h-6 rounded-full bg-[#00829B] group-hover:bg-[#006C82] text-white flex items-center justify-center transition-transform group-hover:scale-110">
+                      <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                    </div>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_1px_240px] gap-8 md:gap-12 md:pl-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6 text-[15px] font-medium">
+                    <div className="space-y-6">
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('updates')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Blogs
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('updates')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        News & Events
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('about')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Patient Testimonials
+                      </button>
+                    </div>
+
+                    <div className="space-y-6">
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('about')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        FAQs
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('facilities')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Gallery
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="hidden w-px self-stretch bg-zinc-300 md:block" aria-hidden="true" />
+
+                  <div className="md:pl-4">
+                    <h4 className="mb-8 text-xl font-semibold leading-none text-black">Quick Access</h4>
+                    <div className="space-y-5 text-[15px] font-medium">
+                      <Link
+                        href="/patient-portal/doctors"
+                        onClick={closeAllMenus}
+                        className="block text-black hover:text-[#00829B] transition-colors"
+                      >
+                        Find a Doctor
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('packages')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Health Checkup Packages
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeAllMenus();
+                          onOpenBookingModal?.();
+                        }}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        Book an Appointment
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection('facilities')}
+                        className="block text-left text-black hover:text-[#00829B] transition-colors cursor-pointer"
+                      >
+                        International Patients
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
@@ -533,7 +922,7 @@ export const PatientNav: React.FC<PatientNavProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-[#1A1A1A]">{patientUser.name}</p>
-                  <p className="text-[11px] text-[#777]">{patientUser.email}</p>
+                  <p className="text-[11px] text-[#777] truncate">{patientUser.email}</p>
                 </div>
                 <button
                   type="button"
