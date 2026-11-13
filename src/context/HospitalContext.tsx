@@ -2,6 +2,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
+} from 'firebase/auth';
+import {
   Role,
   Specialization,
   Doctor,
@@ -21,6 +27,9 @@ import {
   CLOUD_BLOGS,
 } from '@/lib/cloudData';
 import {
+  auth,
+  db,
+  COLLECTIONS,
   saveDoctorToFirestore,
   deleteDoctorFromFirestore,
   savePatientToFirestore,
@@ -82,6 +91,7 @@ interface HospitalContextType {
     isNewPatient?: boolean;
     email?: string;
   }>;
+  resetPatientPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   completeNewPatientProfile: (details: {
     name: string;
     email: string;
@@ -217,20 +227,16 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return DEFAULT_HERO_CONFIG;
   });
 
-  // Auth States
-  const [isPatientAuthenticated, setIsPatientAuthenticated] = useState<boolean>(true);
-  const [patientUser, setPatientUser] = useState<Patient | null>(CLOUD_PATIENTS[0]);
+  // Auth States - Default to false (NO default auto-login for patient, doctor, or admin)
+  const [isPatientAuthenticated, setIsPatientAuthenticated] = useState<boolean>(false);
+  const [patientUser, setPatientUser] = useState<Patient | null>(null);
   const [patientOtpPendingEmail, setPatientOtpPendingEmail] = useState<string | null>(null);
 
-  const [isDoctorAuthenticated, setIsDoctorAuthenticated] = useState<boolean>(true);
-  const [doctorUser, setDoctorUser] = useState<Doctor | null>(CLOUD_DOCTORS[0]); // Dr. Wright
+  const [isDoctorAuthenticated, setIsDoctorAuthenticated] = useState<boolean>(false);
+  const [doctorUser, setDoctorUser] = useState<Doctor | null>(null);
 
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(true);
-  const [adminUser, setAdminUser] = useState<{ name: string; email: string; role: string } | null>({
-    name: 'Hospital Administration Director',
-    email: 'admin@inspirezest.com',
-    role: 'Chief Medical Administrator',
-  });
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
+  const [adminUser, setAdminUser] = useState<{ name: string; email: string; role: string } | null>(null);
 
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -282,8 +288,16 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (storedDoctors) {
         const parsed = JSON.parse(storedDoctors);
         setDoctors(parsed);
-        const currentDoc = parsed.find((d: Doctor) => d.id === 'doc-wright') || parsed[0];
-        if (currentDoc) setDoctorUser(currentDoc);
+      }
+
+      const storedDoctorAuth = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}doctor_auth`);
+      if (storedDoctorAuth === 'true') {
+        setIsDoctorAuthenticated(true);
+        const storedDocUser = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}doctor_user`);
+        if (storedDocUser) setDoctorUser(JSON.parse(storedDocUser));
+      } else {
+        setIsDoctorAuthenticated(false);
+        setDoctorUser(null);
       }
 
       const storedAppointments = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}appointments`);
@@ -293,23 +307,23 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (storedBlogs) setBlogs(JSON.parse(storedBlogs));
 
       const storedPatientAuth = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_auth`);
-      if (storedPatientAuth === 'false') {
-        setIsPatientAuthenticated(false);
-        setPatientUser(null);
-      } else if (storedPatientAuth === 'true') {
+      if (storedPatientAuth === 'true') {
         setIsPatientAuthenticated(true);
         const storedUser = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`);
         if (storedUser) setPatientUser(JSON.parse(storedUser));
+      } else {
+        setIsPatientAuthenticated(false);
+        setPatientUser(null);
       }
 
       const storedAdminAuth = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}admin_auth`);
-      if (storedAdminAuth === 'false') {
-        setIsAdminAuthenticated(false);
-        setAdminUser(null);
-      } else if (storedAdminAuth === 'true') {
+      if (storedAdminAuth === 'true') {
         setIsAdminAuthenticated(true);
         const storedAdminUser = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}admin_user`);
         if (storedAdminUser) setAdminUser(JSON.parse(storedAdminUser));
+      } else {
+        setIsAdminAuthenticated(false);
+        setAdminUser(null);
       }
     } catch {
       // LocalStorage error handled gracefully
@@ -346,8 +360,11 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         if (remoteDoctors && remoteDoctors.length > 0) {
           setDoctors(remoteDoctors);
-          const currentDoc = remoteDoctors.find((d: Doctor) => d.id === 'doc-wright') || remoteDoctors[0];
-          if (currentDoc) setDoctorUser(currentDoc);
+          // Only update doctorUser if doctor is already authenticated
+          setDoctorUser((prev) => {
+            if (!prev) return null;
+            return remoteDoctors.find((d: Doctor) => d.id === prev.id) || prev;
+          });
         }
         if (remoteSpecs && remoteSpecs.length > 0) {
           const map = new Map<string, Specialization>();
@@ -577,33 +594,99 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const loginPatientWithPassword = async (email: string, password: string) => {
     const cleanEmail = email.trim().toLowerCase();
-    const patient = patients.find((p) => p.email.toLowerCase() === cleanEmail);
-    if (patient) {
-      setPatientUser(patient);
-      setIsPatientAuthenticated(true);
-      setCurrentRole('patient');
+    const cleanPassword = password.trim();
 
+    try {
+      // 1. Attempt Firebase Authentication
+      let firebaseUser = null;
       try {
-        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_auth`, 'true');
-        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`, JSON.stringify(patient));
-        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'patient');
-      } catch {}
+        const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+        firebaseUser = userCredential.user;
+      } catch (fbErr: any) {
+        console.warn('Firebase signIn note:', fbErr?.code, fbErr?.message);
+        if (fbErr?.code === 'auth/wrong-password' || fbErr?.code === 'auth/invalid-credential') {
+          addToast('Incorrect password. Please verify and try again.', 'error', 'Authentication Failed');
+          return { success: false, message: 'Incorrect password. Please verify and try again.' };
+        }
+      }
 
-      addToast(`Welcome back, ${patient.name}`, 'success', 'Signed In Successfully');
-      return { success: true, isNewPatient: false, message: 'Logged in successfully' };
-    }
+      // 2. Lookup existing profile
+      let patient = patients.find((p) => p.email.toLowerCase() === cleanEmail);
+      if (patient) {
+        setPatientUser(patient);
+        setIsPatientAuthenticated(true);
+        setCurrentRole('patient');
 
-    if (cleanEmail.includes('@') && password.length >= 4) {
-      // New patient detected: Ask patient to fill their real details
-      return {
-        success: true,
-        isNewPatient: true,
-        email: cleanEmail,
-        message: 'New patient account detected. Please provide your profile details to complete registration.',
-      };
+        try {
+          localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_auth`, 'true');
+          localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`, JSON.stringify(patient));
+          localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'patient');
+        } catch {}
+
+        addToast(`Welcome back, ${patient.name}`, 'success', 'Signed In Successfully');
+        return { success: true, isNewPatient: false, message: 'Logged in successfully', patient };
+      }
+
+      // If user signed into Firebase but patient record isn't in state yet
+      if (firebaseUser) {
+        const generatedPatient: Patient = {
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          phone: '+91 9567333266',
+          age: 32,
+          gender: 'Female',
+          bloodGroup: 'O+',
+          address: 'Verified Patient',
+          emergencyContact: 'Care Coordinator',
+          registeredDate: new Date().toISOString().split('T')[0],
+        };
+        setPatients((prev) => [generatedPatient, ...prev]);
+        setPatientUser(generatedPatient);
+        setIsPatientAuthenticated(true);
+        setCurrentRole('patient');
+
+        try {
+          localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_auth`, 'true');
+          localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`, JSON.stringify(generatedPatient));
+          localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'patient');
+        } catch {}
+
+        savePatientToFirestore(generatedPatient).catch(() => {});
+        addToast(`Welcome to InspireZest, ${generatedPatient.name}`, 'success', 'Signed In Successfully');
+        return { success: true, isNewPatient: false, message: 'Logged in successfully', patient: generatedPatient };
+      }
+
+      if (cleanEmail.includes('@') && cleanPassword.length >= 4) {
+        // New patient detected: Ask patient to fill their real details
+        return {
+          success: true,
+          isNewPatient: true,
+          email: cleanEmail,
+          message: 'New patient account detected. Please provide your profile details to complete registration.',
+        };
+      }
+
+      addToast('Invalid email or password', 'error', 'Login Failed');
+      return { success: false, message: 'Invalid credentials' };
+    } catch (err: any) {
+      addToast(err?.message || 'Login failed', 'error', 'Authentication Error');
+      return { success: false, message: err?.message || 'Login failed' };
     }
-    addToast('Invalid email or password', 'error', 'Login Failed');
-    return { success: false, message: 'Invalid credentials' };
+  };
+
+  const resetPatientPassword = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      addToast('Password reset link sent to your email inbox', 'success', 'Reset Link Dispatched');
+      return { success: true, message: 'Password reset link sent to your email' };
+    } catch (err: any) {
+      const msg = err?.code === 'auth/user-not-found'
+        ? 'No patient account found with this email'
+        : err?.message || 'Failed to dispatch password reset link';
+      addToast(msg, 'error', 'Reset Failed');
+      return { success: false, message: msg };
+    }
   };
 
   const completeNewPatientProfile = async (details: {
@@ -618,8 +701,19 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     password?: string;
   }) => {
     const cleanEmail = details.email.trim().toLowerCase();
+    const cleanPassword = details.password?.trim() || 'InspireZest@123';
+
+    let uid = `pat-${Date.now()}`;
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+      uid = cred.user.uid;
+      await updateProfile(cred.user, { displayName: details.name.trim() });
+    } catch (fbErr: any) {
+      console.warn('Firebase createUser note in completeProfile:', fbErr?.code);
+    }
+
     const newPatient: Patient = {
-      id: `pat-${Date.now()}`,
+      id: uid,
       name: details.name.trim(),
       email: cleanEmail,
       phone: details.phone.trim(),
@@ -629,6 +723,7 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       address: details.address?.trim() || 'Residential Address Not Specified',
       emergencyContact: details.emergencyContact?.trim() || 'Emergency Contact Pending',
       registeredDate: new Date().toISOString().split('T')[0],
+      password: details.password || 'InspireZest@123',
     };
 
     setPatients((prev) => [newPatient, ...prev.filter((p) => p.email.toLowerCase() !== cleanEmail)]);
@@ -660,33 +755,61 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     emergencyContact?: string;
     password?: string;
   }) => {
-    const existing = patients.find((p) => p.email.toLowerCase() === data.email.toLowerCase());
+    const cleanEmail = data.email.trim().toLowerCase();
+    const cleanPassword = data.password?.trim() || 'InspireZest@123';
+
+    const existing = patients.find((p) => p.email.toLowerCase() === cleanEmail);
     if (existing) {
-      addToast('An account with this email already exists', 'error', 'Sign Up Failed');
+      addToast('An account with this email already exists. Please sign in.', 'error', 'Sign Up Failed');
       return { success: false, message: 'Email already registered' };
     }
 
+    let uid = `pat-${Date.now()}`;
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+      uid = cred.user.uid;
+      await updateProfile(cred.user, { displayName: data.name.trim() });
+    } catch (fbErr: any) {
+      console.warn('Firebase createUser note in signupPatient:', fbErr?.code, fbErr?.message);
+      if (fbErr?.code === 'auth/email-already-in-use') {
+        addToast('This email is already registered in cloud auth. Please sign in.', 'error', 'Account Exists');
+        return { success: false, message: 'This email is already registered. Please sign in.' };
+      }
+      if (fbErr?.code === 'auth/weak-password') {
+        addToast('Password should be at least 6 characters long.', 'error', 'Weak Password');
+        return { success: false, message: 'Password should be at least 6 characters long.' };
+      }
+    }
+
     const newPatient: Patient = {
-      id: `pat-${Date.now()}`,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
+      id: uid,
+      name: data.name.trim(),
+      email: cleanEmail,
+      phone: data.phone.trim(),
       age: Number(data.age) || 30,
       gender: data.gender || 'Female',
       bloodGroup: data.bloodGroup || 'O+',
-      address: data.address || 'Medical Center Vicinity',
-      emergencyContact: data.emergencyContact || 'Emergency Contact On File',
+      address: data.address?.trim() || 'Medical Center Vicinity',
+      emergencyContact: data.emergencyContact?.trim() || 'Emergency Contact On File',
       registeredDate: new Date().toISOString().split('T')[0],
+      password: cleanPassword,
     };
 
     setPatients((prev) => [newPatient, ...prev]);
     setPatientUser(newPatient);
     setIsPatientAuthenticated(true);
+    setCurrentRole('patient');
+
+    try {
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_auth`, 'true');
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`, JSON.stringify(newPatient));
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'patient');
+    } catch {}
 
     // Sync to Firestore
     savePatientToFirestore(newPatient).catch((err) => console.warn('Firestore sync note:', err));
 
-    addToast(`Account created for ${newPatient.name}! Welcome to ApexCare.`, 'success', 'Registration Completed');
+    addToast(`Account created for ${newPatient.name}! Welcome to InspireZest Hospital.`, 'success', 'Registration Completed');
     return { success: true, message: 'Account created successfully', patient: newPatient };
   };
 
@@ -695,6 +818,11 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (doc) {
       setDoctorUser(doc);
       setIsDoctorAuthenticated(true);
+      try {
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}doctor_auth`, 'true');
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}doctor_user`, JSON.stringify(doc));
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'doctor');
+      } catch {}
       addToast(`Welcome Dr. ${doc.name}`, 'success', 'Doctor Portal Access Granted');
       return { success: true, message: 'Doctor login successful' };
     }
@@ -703,6 +831,11 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const defaultDoc = doctors[0];
       setDoctorUser(defaultDoc);
       setIsDoctorAuthenticated(true);
+      try {
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}doctor_auth`, 'true');
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}doctor_user`, JSON.stringify(defaultDoc));
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'doctor');
+      } catch {}
       addToast(`Welcome Dr. ${defaultDoc.name}`, 'success', 'Doctor Portal Access Granted');
       return { success: true, message: 'Doctor login successful' };
     }
@@ -865,6 +998,10 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } else if (target === 'doctor') {
       setIsDoctorAuthenticated(false);
       setDoctorUser(null);
+      try {
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}doctor_auth`, 'false');
+        localStorage.removeItem(`${LOCAL_STORAGE_KEY_PREFIX}doctor_user`);
+      } catch {}
       addToast('Doctor signed out', 'info');
     } else if (target === 'admin') {
       setIsAdminAuthenticated(false);
@@ -1219,6 +1356,7 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         sendPatientOtp,
         verifyPatientOtp,
         loginPatientWithPassword,
+        resetPatientPassword,
         completeNewPatientProfile,
         signupPatient,
         loginDoctor,

@@ -155,204 +155,244 @@ export const PatientNav: React.FC<PatientNavProps> = ({
         isHomePage
           ? `fixed top-0 left-0 right-0 ${
               isScrolled || activeMegaMenu || mobileMenuOpen
-                ? 'bg-[#FAFAFA] shadow-sm border-b border-[#EAEAEA] text-[#1A1A1A]'
-                : 'bg-transparent text-[#1A1A1A]'
+                ? 'bg-[#FAFAFA] shadow-sm border-b border-[#EAEAEA] text-[#1A1A1A] backdrop-blur supports-backdrop-filter:bg-[#FAFAFA]'
+                : 'bg-transparent text-white'
             }`
           : 'sticky top-0 bg-[#FAFAFA] border-b border-[#EAEAEA] shadow-xs text-[#1A1A1A]'
       }`}
     >
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 2xl:px-14">
-        <div className="flex items-center justify-between py-2 sm:py-2.5 lg:py-2">
-          {/* 1. Left Logo (InspireZest Official Logo) */}
-          <div className="shrink-0 flex items-center pr-2 sm:pr-4 xl:pr-8 py-0.5 max-w-[62%] sm:max-w-none">
-            <Link
-              href="/patient-portal"
-              onClick={closeAllMenus}
-              className="inline-flex items-center hover:opacity-95 transition-opacity"
+      <div className="mx-auto w-full max-w-[90rem] 2xl:max-w-[110rem] px-4 sm:px-8 lg:px-10 2xl:px-15 3xl:max-w-[120rem] 3xl:px-20 pt-3 xl:pt-5 pb-4 xl:pb-5">
+        
+        {/* Tier 1: Utility Ribbon (Hidden on < xl, Visible on xl+) */}
+        <div>
+          <div className="relative z-50 hidden xl:block">
+            <div
+              className={`ml-auto flex max-w-full flex-wrap items-center justify-end gap-3 pb-2 text-sm 2xl:gap-4 2xl:text-base ${
+                isNavbarTransparent ? 'text-white' : 'text-[#1A1A1A]'
+              }`}
             >
-              <InspireZestLogo
-                variant="full"
-                size="lg"
-                onDark={isNavbarTransparent}
-                priority
-              />
-            </Link>
-          </div>
-
-          {/* 2. Right Two-Tier Header (Exact Meditrina Layout & Placements) */}
-          <div className="hidden lg:inline-flex flex-col items-end">
-            {/* Top Row: Utility Ribbon */}
-            <div className="flex items-center gap-4 text-[12px] font-medium text-[#1A1A1A] pb-1.5 pt-0.5">
               {/* Location Pill */}
               <div
                 onClick={() =>
                   setActiveMegaMenu((prev) => (prev === 'hospitals' ? null : 'hospitals'))
                 }
-                className="flex items-center gap-1 hover:text-[#00829B] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 font-medium transition-colors duration-200 hover:text-sky-500 cursor-pointer"
               >
-                <MapPin className="w-3.5 h-3.5 text-[#1A1A1A]" />
+                <MapPin className="w-4 h-4" />
                 <span>Kollam</span>
               </div>
 
-              <span className="text-[#AAAAAA] font-light">|</span>
+              <span
+                className={`mx-3 hidden h-4 w-px sm:block ${
+                  isNavbarTransparent ? 'bg-white/40' : 'bg-[#6E6E6E]'
+                }`}
+                aria-hidden="true"
+              />
 
               {/* International Patients */}
               <button
                 type="button"
                 onClick={() => scrollToSection('facilities')}
-                className="hover:text-[#00829B] transition-colors cursor-pointer text-left"
+                className="font-medium transition-colors duration-200 hover:text-sky-500 cursor-pointer text-left"
               >
                 International Patients
               </button>
 
-              <span className="text-[#AAAAAA] font-light">|</span>
+              <span
+                className={`mx-3 hidden h-4 w-px sm:block ${
+                  isNavbarTransparent ? 'bg-white/40' : 'bg-[#6E6E6E]'
+                }`}
+                aria-hidden="true"
+              />
 
               {/* Contact */}
               <button
                 type="button"
                 onClick={() => scrollToSection('contact')}
-                className="hover:text-[#00829B] transition-colors cursor-pointer text-left"
+                className="font-medium transition-colors duration-200 hover:text-sky-500 cursor-pointer text-left"
               >
                 Contact
               </button>
 
-              <span className="text-[#AAAAAA] font-light">|</span>
+              <span
+                className={`mx-3 hidden h-4 w-px sm:block ${
+                  isNavbarTransparent ? 'bg-white/40' : 'bg-[#6E6E6E]'
+                }`}
+                aria-hidden="true"
+              />
 
               {/* Emergency Helpline */}
               <a
                 href="tel:9567333266"
-                className="flex items-center gap-1 hover:text-[#00829B] transition-colors"
+                className="font-medium transition-colors duration-200 hover:text-sky-500"
               >
-                <span>Emergency 24x7:</span>
-                <span className="font-bold text-[#1A1A1A] hover:text-[#00829B]">+91 9567333266</span>
+                <span>Emergency 24x7: </span>
+                <span className="font-bold">+91 9567333266</span>
               </a>
             </div>
+          </div>
+        </div>
 
-            {/* Horizontal Thin Divider Line (Right below top ribbon) */}
-            <div className="w-full border-b border-black/15 my-1" />
+        {/* Tier 2: Main Navigation Bar Row (h-24 on mobile/tablet, xl:h-23 on desktop matching Meditrina exact dimensions) */}
+        <div className="relative z-10 flex h-24 min-w-0 items-center xl:h-23">
+          {/* 1. Left Logo (InspireZest Official Logo with Meditrina sizing & positioning) */}
+          <Link
+            href="/patient-portal"
+            onClick={closeAllMenus}
+            className="-mt-1 inline-flex shrink-0 items-center xl:-mt-10 hover:opacity-95 transition-opacity"
+          >
+            <InspireZestLogo
+              variant="full"
+              size="lg"
+              onDark={isNavbarTransparent}
+              priority
+              className="h-auto w-[175px] sm:w-[195px] xl:w-[273px] block"
+            />
+          </Link>
 
-            {/* Bottom Row: Main Navigation Links & CTA */}
-            <div className="flex items-center gap-6 xl:gap-8 pt-1 w-full justify-end">
-              <nav className="flex items-center gap-5 xl:gap-7 text-[14px] font-medium text-[#1A1A1A]">
-                {/* 1. Our Hospitals ⌵ */}
-                <div
-                  className="relative py-2"
-                  onMouseEnter={() => handleMouseEnter('hospitals')}
+          {/* 2. Desktop Navigation Menu on Right (hidden on < xl, visible xl:flex) */}
+          <div
+            className={`ml-auto hidden min-w-0 max-w-[calc(100%-11.5rem)] items-center gap-3 border-t pt-5 xl:flex 2xl:max-w-none 2xl:gap-8 ${
+              isNavbarTransparent ? 'border-white/20' : 'border-black/20'
+            }`}
+          >
+            <nav
+              className={`flex min-w-0 flex-1 flex-wrap items-center justify-end gap-x-3 gap-y-2 pr-2 text-sm font-medium 2xl:gap-x-6 2xl:text-base ${
+                isNavbarTransparent ? 'text-white' : 'text-[#1A1A1A]'
+              }`}
+            >
+              {/* 1. Our Hospitals ⌵ */}
+              <div
+                className="relative py-2 -mx-2 -mb-8 -mt-2 px-2 pb-8 pt-2"
+                onMouseEnter={() => handleMouseEnter('hospitals')}
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveMegaMenu((prev) => (prev === 'hospitals' ? null : 'hospitals'))
+                  }
+                  className={`inline-flex items-center gap-1 tracking-wide transition-colors duration-200 cursor-pointer ${
+                    activeMegaMenu === 'hospitals'
+                      ? 'text-sky-500'
+                      : isNavbarTransparent
+                      ? 'text-white hover:text-sky-400'
+                      : 'text-black hover:text-sky-500'
+                  }`}
                 >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setActiveMegaMenu((prev) => (prev === 'hospitals' ? null : 'hospitals'))
-                    }
-                    className={`flex items-center gap-1 py-1.5 transition-colors cursor-pointer ${
-                      activeMegaMenu === 'hospitals' ? 'text-[#00829B]' : 'hover:text-[#00829B]'
+                  <span>Our Hospitals</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      activeMegaMenu === 'hospitals' ? 'rotate-180 text-sky-500' : ''
                     }`}
-                  >
-                    <span>Our Hospitals</span>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                        activeMegaMenu === 'hospitals'
-                          ? 'rotate-180 text-[#00829B]'
-                          : 'text-[#555555]'
-                      }`}
-                    />
-                  </button>
-                </div>
+                  />
+                </button>
+              </div>
 
-                {/* 2. Specialities ⌵ */}
-                <div
-                  className="relative py-2"
-                  onMouseEnter={() => handleMouseEnter('specialities')}
+              {/* 2. Specialities ⌵ */}
+              <div
+                className="relative py-2 -mx-2 -mb-8 -mt-2 px-2 pb-8 pt-2"
+                onMouseEnter={() => handleMouseEnter('specialities')}
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveMegaMenu((prev) => (prev === 'specialities' ? null : 'specialities'))
+                  }
+                  className={`inline-flex items-center gap-1 tracking-wide transition-colors duration-200 cursor-pointer ${
+                    activeMegaMenu === 'specialities'
+                      ? 'text-sky-500'
+                      : isNavbarTransparent
+                      ? 'text-white hover:text-sky-400'
+                      : 'text-black hover:text-sky-500'
+                  }`}
                 >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setActiveMegaMenu((prev) => (prev === 'specialities' ? null : 'specialities'))
-                    }
-                    className={`flex items-center gap-1 py-1.5 transition-colors cursor-pointer ${
-                      activeMegaMenu === 'specialities'
-                        ? 'text-[#00829B]'
-                        : 'hover:text-[#00829B]'
+                  <span>Specialities</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      activeMegaMenu === 'specialities' ? 'rotate-180 text-sky-500' : ''
                     }`}
-                  >
-                    <span>Specialities</span>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                        activeMegaMenu === 'specialities'
-                          ? 'rotate-180 text-[#00829B]'
-                          : 'text-[#555555]'
-                      }`}
-                    />
-                  </button>
-                </div>
+                  />
+                </button>
+              </div>
 
-                {/* 3. About ⌵ */}
-                <div
-                  className="relative py-2"
-                  onMouseEnter={() => handleMouseEnter('about')}
+              {/* 3. About ⌵ */}
+              <div
+                className="relative py-2 -mx-2 -mb-8 -mt-2 px-2 pb-8 pt-2"
+                onMouseEnter={() => handleMouseEnter('about')}
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveMegaMenu((prev) => (prev === 'about' ? null : 'about'))
+                  }
+                  className={`inline-flex items-center gap-1 tracking-wide transition-colors duration-200 cursor-pointer ${
+                    activeMegaMenu === 'about'
+                      ? 'text-sky-500'
+                      : isNavbarTransparent
+                      ? 'text-white hover:text-sky-400'
+                      : 'text-black hover:text-sky-500'
+                  }`}
                 >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setActiveMegaMenu((prev) => (prev === 'about' ? null : 'about'))
-                    }
-                    className={`flex items-center gap-1 py-1.5 transition-colors cursor-pointer ${
-                      activeMegaMenu === 'about' ? 'text-[#00829B]' : 'hover:text-[#00829B]'
+                  <span>About</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      activeMegaMenu === 'about' ? 'rotate-180 text-sky-500' : ''
                     }`}
-                  >
-                    <span>About</span>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                        activeMegaMenu === 'about' ? 'rotate-180 text-[#00829B]' : 'text-[#555555]'
-                      }`}
-                    />
-                  </button>
-                </div>
+                  />
+                </button>
+              </div>
 
-                {/* 4. Find a Doctor (No Chevron) */}
-                <Link
-                  href="/patient-portal/doctors"
-                  onMouseEnter={() => setActiveMegaMenu(null)}
-                  onClick={closeAllMenus}
-                  className="hover:text-[#00829B] py-1.5 transition-colors"
-                >
-                  Find a Doctor
-                </Link>
+              {/* 4. Find a Doctor (No Chevron) */}
+              <Link
+                href="/patient-portal/doctors"
+                onMouseEnter={() => setActiveMegaMenu(null)}
+                onClick={closeAllMenus}
+                className={`tracking-wide transition-colors duration-200 py-1.5 ${
+                  isNavbarTransparent
+                    ? 'text-white hover:text-sky-400'
+                    : 'text-black hover:text-sky-500'
+                }`}
+              >
+                Find a Doctor
+              </Link>
 
-                {/* 5. Resources ⌵ */}
-                <div
-                  className="relative py-2"
-                  onMouseEnter={() => handleMouseEnter('resources')}
+              {/* 5. Resources ⌵ */}
+              <div
+                className="relative py-2 -mx-2 -mb-8 -mt-2 px-2 pb-8 pt-2"
+                onMouseEnter={() => handleMouseEnter('resources')}
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveMegaMenu((prev) => (prev === 'resources' ? null : 'resources'))
+                  }
+                  className={`inline-flex items-center gap-1 tracking-wide transition-colors duration-200 cursor-pointer ${
+                    activeMegaMenu === 'resources'
+                      ? 'text-sky-500'
+                      : isNavbarTransparent
+                      ? 'text-white hover:text-sky-400'
+                      : 'text-black hover:text-sky-500'
+                  }`}
                 >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setActiveMegaMenu((prev) => (prev === 'resources' ? null : 'resources'))
-                    }
-                    className={`flex items-center gap-1 py-1.5 transition-colors cursor-pointer ${
-                      activeMegaMenu === 'resources' ? 'text-[#00829B]' : 'hover:text-[#00829B]'
+                  <span>Resources</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      activeMegaMenu === 'resources' ? 'rotate-180 text-sky-500' : ''
                     }`}
-                  >
-                    <span>Resources</span>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                        activeMegaMenu === 'resources'
-                          ? 'rotate-180 text-[#00829B]'
-                          : 'text-[#555555]'
-                      }`}
-                    />
-                  </button>
-                </div>
-              </nav>
+                  />
+                </button>
+              </div>
+            </nav>
 
-              {/* Meditrina Exact Cyan Pill Button with Paragon hover interaction */}
+            {/* CTAs: Meditrina Exact Cyan Pill Button & Patient Auth */}
+            <div className="flex items-center gap-3 shrink-0">
               <button
                 type="button"
                 onClick={onOpenBookingModal}
-                className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white text-[13px] font-bold tracking-tight shadow-md hover:shadow-cyan-900/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer whitespace-nowrap overflow-hidden"
+                className="group relative inline-flex items-center gap-2.5 rounded-full border border-[#0E88AA] bg-[#0E88AA] text-white hover:border-[#0B6F8E] hover:bg-[#0B6F8E] font-medium transition-[background-color,border-color,color,box-shadow] duration-300 ease-out shadow-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer whitespace-nowrap px-5 py-2.5 text-sm 2xl:px-7 2xl:py-3 2xl:text-[15px]"
               >
                 <span>Book an Appointment</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
 
               {/* Patient Auth Profile or Login Button */}
@@ -363,14 +403,16 @@ export const PatientNav: React.FC<PatientNavProps> = ({
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="flex items-center gap-1.5 p-1 rounded-full hover:bg-black/5 transition-colors cursor-pointer"
                   >
-                    <div className="w-8 h-8 rounded-full bg-[#00829B] text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                    <div className="w-9 h-9 rounded-full bg-[#00829B] text-white flex items-center justify-center font-bold text-xs shadow-sm">
                       {patientUser.name.charAt(0)}
                     </div>
-                    <ChevronDown className="w-3 h-3 text-[#555]" />
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 ${isNavbarTransparent ? 'text-white' : 'text-[#555]'}`}
+                    />
                   </button>
 
                   {profileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-[#E5E7EB] py-2 z-50 animate-fade-in">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-[#E5E7EB] py-2 z-50 animate-fade-in text-[#1A1A1A]">
                       <div className="px-4 py-2 border-b border-gray-100">
                         <p className="text-xs font-bold text-[#1A1A1A]">{patientUser.name}</p>
                         <p className="text-[11px] text-[#777] truncate">{patientUser.email}</p>
@@ -398,40 +440,70 @@ export const PatientNav: React.FC<PatientNavProps> = ({
                   )}
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={onOpenAuthModal}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-300 text-xs font-medium text-[#1A1A1A] hover:border-[#00829B] hover:text-[#00829B] transition-colors cursor-pointer whitespace-nowrap"
+                <Link
+                  href="/patient-portal/login"
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                    isNavbarTransparent
+                      ? 'border-white/40 text-white hover:border-[#00829B] hover:bg-white/10'
+                      : 'border-gray-300 text-[#1A1A1A] hover:border-[#00829B] hover:text-[#00829B]'
+                  }`}
                 >
                   <User className="w-3.5 h-3.5" />
                   <span>Login</span>
-                </button>
+                </Link>
               )}
             </div>
           </div>
 
-          {/* 3. Mobile View Actions & Hamburger */}
-          <div className="flex lg:hidden items-center gap-2 sm:gap-3">
+          {/* 3. Mobile/Tablet Navigation Right Section (xl:hidden) */}
+          <div className="ml-auto flex items-center gap-2 sm:gap-3 xl:hidden">
+            {/* Location Pill for mobile/tablet */}
+            <div
+              onClick={() =>
+                setActiveMegaMenu((prev) => (prev === 'hospitals' ? null : 'hospitals'))
+              }
+              className={`hidden sm:inline-flex items-center gap-1.5 text-sm font-medium cursor-pointer ${
+                isNavbarTransparent ? 'text-white' : 'text-[#1A1A1A]'
+              }`}
+            >
+              <MapPin className="w-4 h-4" />
+              <span>Kollam</span>
+            </div>
+
             <button
               type="button"
               onClick={onOpenBookingModal}
-              className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white text-xs font-bold shadow-sm whitespace-nowrap active:scale-95 transition-all"
+              className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white text-xs font-bold shadow-sm whitespace-nowrap active:scale-95 transition-all"
             >
               <span>Book</span>
-              <ArrowRight className="w-3 h-3" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
+
+            {/* Mobile Auth status or avatar */}
+            {isPatientAuthenticated && patientUser ? (
+              <Link
+                href="/patient-portal/appointments"
+                className="w-8 h-8 rounded-full bg-[#00829B] text-white flex items-center justify-center font-bold text-xs shadow-sm"
+              >
+                {patientUser.name.charAt(0)}
+              </Link>
+            ) : null}
 
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`p-2 rounded-lg transition-colors cursor-pointer ${
+              className={`p-2.5 rounded-lg transition-colors cursor-pointer ${
                 isNavbarTransparent
                   ? 'text-white hover:bg-white/10'
                   : 'text-gray-800 hover:bg-black/5'
               }`}
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6 text-gray-900" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6 text-gray-900" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
         </div>
@@ -947,17 +1019,14 @@ export const PatientNav: React.FC<PatientNavProps> = ({
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenAuthModal?.();
-                }}
+              <Link
+                href="/patient-portal/login"
+                onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full border border-gray-300 text-xs font-bold text-[#1A1A1A] hover:border-[#00829B]"
               >
                 <User className="w-4 h-4" />
                 <span>Patient Login</span>
-              </button>
+              </Link>
             )}
           </div>
         </div>

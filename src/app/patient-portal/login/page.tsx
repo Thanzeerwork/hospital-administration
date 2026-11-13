@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useHospital } from '@/context/HospitalContext';
 import InspireZestLogo from '@/components/common/InspireZestLogo';
-import { Button } from '@/components/common/Button';
 import {
   HeartPulse,
   Mail,
@@ -14,45 +13,56 @@ import {
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
-  KeyRound,
-  RotateCw,
-  Sparkles,
   Eye,
   EyeOff,
-  ChevronLeft,
-  Building2,
   PhoneCall,
-  Activity,
-  Check,
+  Sparkles,
+  Award,
+  KeyRound,
+  RotateCw,
   User,
   Phone,
   Calendar,
   MapPin,
-  ShieldAlert,
+  X,
+  Clock,
+  Check,
 } from 'lucide-react';
 
 export default function PatientLoginPage() {
   const router = useRouter();
   const {
     isPatientAuthenticated,
+    loginPatientWithPassword,
     sendPatientOtp,
     verifyPatientOtp,
-    loginPatientWithPassword,
+    resetPatientPassword,
     completeNewPatientProfile,
-    patientOtpPendingEmail,
   } = useHospital();
 
-  const [authMethod, setAuthMethod] = useState<'otp' | 'password'>('otp');
+  // Mode: 'password' (default) | 'otp'
+  const [authMode, setAuthMode] = useState<'password' | 'otp'>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+
+  // OTP state
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [sentViaResend, setSentViaResend] = useState(false);
   const [activeOtpCode, setActiveOtpCode] = useState('');
-  const [resendWarning, setResendWarning] = useState<string | null>(null);
+  const [sentViaResend, setSentViaResend] = useState(false);
+
+  // Password reset modal state
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  // Loading & Error State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // New Patient Profile Completion State
   const [isNewPatientStep, setIsNewPatientStep] = useState(false);
@@ -66,13 +76,45 @@ export default function PatientLoginPage() {
     bloodGroup: 'O+',
     address: '',
     emergencyContact: '',
-    password: '',
   });
 
+  // Handle Email & Password Login
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      setError('Please provide your registered email address and password.');
+      return;
+    }
+    setError(null);
+    setSuccessMsg(null);
+    setLoading(true);
+
+    try {
+      const res = await loginPatientWithPassword(email, password);
+      if (res.success) {
+        if (res.isNewPatient) {
+          setIsNewPatientStep(true);
+          setNewPatientEmail(email);
+          setNewPatientPassword(password);
+          setError(null);
+        } else {
+          router.push('/patient-portal');
+        }
+      } else {
+        setError(res.message);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Login failed. Please verify credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle OTP send
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address');
+    if (!email.trim() || !email.includes('@')) {
+      setError('Please provide a valid email address.');
       return;
     }
     setError(null);
@@ -82,11 +124,8 @@ export default function PatientLoginPage() {
       if (res.success) {
         setOtpSent(true);
         setSentViaResend(!!res.sentViaResend);
-        setResendWarning(res.resendWarning || null);
-        if (res.otpCode) {
-          setActiveOtpCode(res.otpCode);
-        }
-        setOtp(''); // Never autofill OTP; user enters manually
+        if (res.otpCode) setActiveOtpCode(res.otpCode);
+        setSuccessMsg(res.message);
       } else {
         setError(res.message);
       }
@@ -95,16 +134,17 @@ export default function PatientLoginPage() {
     }
   };
 
+  // Handle OTP verify
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otp || otp.length < 6) {
-      setError('Please enter the 6-digit verification code');
+    if (!otp.trim() || otp.trim().length < 6) {
+      setError('Please enter the 6-digit verification code.');
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      const res = await verifyPatientOtp(otp);
+      const res = await verifyPatientOtp(otp.trim());
       if (res.success) {
         if (res.isNewPatient) {
           setIsNewPatientStep(true);
@@ -121,33 +161,27 @@ export default function PatientLoginPage() {
     }
   };
 
-  const handlePasswordLogin = async (e: React.FormEvent) => {
+  // Handle Forgot Password
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError('Please provide email and password');
+    if (!resetEmail.trim() || !resetEmail.includes('@')) {
+      setError('Please enter a valid email for password reset.');
       return;
     }
-    setError(null);
-    setLoading(true);
+    setResetLoading(true);
     try {
-      const res = await loginPatientWithPassword(email, password);
+      const res = await resetPatientPassword(resetEmail);
       if (res.success) {
-        if (res.isNewPatient) {
-          setIsNewPatientStep(true);
-          setNewPatientEmail(email);
-          setNewPatientPassword(password);
-          setError(null);
-        } else {
-          router.push('/patient-portal');
-        }
+        setResetSent(true);
       } else {
         setError(res.message);
       }
     } finally {
-      setLoading(false);
+      setResetLoading(false);
     }
   };
 
+  // Handle New Patient Profile Completion
   const handleCompleteNewPatient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPatientData.name.trim() || !newPatientData.phone.trim()) {
@@ -166,7 +200,7 @@ export default function PatientLoginPage() {
         bloodGroup: newPatientData.bloodGroup,
         address: newPatientData.address.trim(),
         emergencyContact: newPatientData.emergencyContact.trim(),
-        password: newPatientPassword || newPatientData.password,
+        password: newPatientPassword || password,
       });
       if (res.success) {
         router.push('/patient-portal');
@@ -178,647 +212,639 @@ export default function PatientLoginPage() {
     }
   };
 
-  const fillDemoPatient = () => {
-    setEmail('eleanor.vance@example.com');
-    setPassword('patient123');
-    setError(null);
-  };
-
-  const fillResendTestUser = () => {
-    setEmail('thanzeerwork@gmail.com');
-    setError(null);
-  };
-
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col lg:grid lg:grid-cols-12 overflow-x-hidden font-sans">
-      {/* 1. LEFT SHOWCASE PANEL (Desktop & Tablet) */}
-      <div className="relative hidden lg:flex lg:col-span-5 xl:col-span-5 bg-[#0A1A22] text-white flex-col justify-between p-10 xl:p-14 overflow-hidden">
-        {/* Background Campus Photo */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://pub-f6697a3e2acd4048a86b5ed54d969979.r2.dev/uploads/1794544119196-InspireZest_Hospital_at_Dusk.png"
-            alt="InspireZest Hospital Campus"
-            className="w-full h-full object-cover object-center scale-105 transition-transform duration-1000"
-          />
-          {/* Gradients matching live Meditrina style */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A1A22] via-[#0A1A22]/75 to-[#0A1A22]/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0A1A22]/90 via-[#0A1A22]/60 to-transparent" />
-        </div>
-
-        {/* Top Header / Logo on Dark */}
-        <div className="relative z-10 flex items-center justify-between">
-          <Link href="/patient-portal" className="inline-block transition-transform hover:scale-[1.02]">
-            <InspireZestLogo variant="full" size="lg" onDark priority />
-          </Link>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-semibold text-white/90">
-            <span className="w-2 h-2 rounded-full bg-[#2FE5A7] animate-pulse" />
-            NABH Accredited
-          </span>
-        </div>
-
-        {/* Center Clinical Message */}
-        <div className="relative z-10 my-auto py-12 max-w-lg">
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#00829B]/80 text-[#2FE5A7] text-[11px] font-bold tracking-wider uppercase mb-4 shadow-sm backdrop-blur-xs">
-            <Sparkles className="w-3.5 h-3.5" />
-            Patient Clinical Portal
-          </span>
-
-          <h1 className="text-3xl xl:text-4xl font-extrabold text-white tracking-tight leading-tight">
-            World-class care, <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-[#7EE3D8]">
-              tailored for you.
-            </span>
-          </h1>
-
-          <p className="mt-4 text-sm text-gray-200/90 leading-relaxed">
-            Sign in to securely access your certified digital e-prescriptions, track laboratory diagnostics, and book consultations across our 6 super-speciality hospital campuses.
-          </p>
-
-          {/* Value Highlights */}
-          <div className="mt-8 space-y-3">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-xs text-white">
-              <div className="w-8 h-8 rounded-lg bg-[#00829B] text-white flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-4 h-4 text-[#2FE5A7]" />
-              </div>
-              <div>
-                <p className="font-bold">256-Bit HIPAA Compliant</p>
-                <p className="text-[11px] text-gray-300">Bank-grade encryption for all medical telemetry & records</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-xs text-white">
-              <div className="w-8 h-8 rounded-lg bg-[#00829B] text-white flex items-center justify-center shrink-0">
-                <Activity className="w-4 h-4 text-[#2FE5A7]" />
-              </div>
-              <div>
-                <p className="font-bold">Instant Doctor Availability</p>
-                <p className="text-[11px] text-gray-300">Direct booking with senior consultants & surgical specialists</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Trust Footer */}
-        <div className="relative z-10 pt-6 border-t border-white/15 flex items-center justify-between text-xs text-gray-300">
-          <div className="flex items-center gap-2">
-            <PhoneCall className="w-4 h-4 text-[#2FE5A7]" />
-            <span>Emergency 24x7: <strong className="text-white">+91 9567333266</strong></span>
-          </div>
-          <span className="text-[11px] text-gray-400">Trusted by 250,000+ Patients</span>
-        </div>
-      </div>
-
-      {/* 2. RIGHT AUTHENTICATION PANEL */}
-      <div className="lg:col-span-7 xl:col-span-7 flex flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16 min-h-screen">
-        {/* Top Navigation */}
-        <div className="flex items-center justify-between pb-6 border-b border-gray-100">
+    <div className="min-h-screen bg-[#FAFAFA] text-[#0A1A22] font-sans flex flex-col justify-between selection:bg-[#00829B]/20">
+      {/* 1. Header (Meditrina Styling with Official Logo & Quick Contacts) */}
+      <header className="border-b border-[#EAEAEA] bg-white sticky top-0 z-30 shadow-xs">
+        <div className="mx-auto w-full max-w-[90rem] 2xl:max-w-[110rem] px-4 sm:px-8 lg:px-10 py-3.5 flex items-center justify-between">
           <Link
             href="/patient-portal"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-[#00829B] transition-colors"
+            className="inline-flex items-center hover:opacity-95 transition-opacity"
           >
-            <ChevronLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Return to Hospital Home</span>
-            <span className="sm:hidden">Home</span>
+            <InspireZestLogo
+              variant="full"
+              size="lg"
+              priority
+              className="h-auto w-[165px] sm:w-[195px] xl:w-[230px] block"
+            />
           </Link>
 
-          {/* Mobile Logo Fallback */}
-          <div className="lg:hidden flex items-center justify-center">
-            <Link href="/patient-portal">
-              <InspireZestLogo variant="full" size="sm" />
+          <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm">
+            <a
+              href="tel:9567333266"
+              className="hidden sm:inline-flex items-center gap-2 font-medium text-[#0A1A22] hover:text-[#00829B] transition-colors"
+            >
+              <PhoneCall className="w-4 h-4 text-[#00829B]" />
+              <span>Emergency 24x7: <strong className="text-[#0A1A22]">+91 9567333266</strong></span>
+            </a>
+
+            <Link
+              href="/patient-portal"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-gray-200 text-xs font-semibold text-[#0A1A22] hover:border-[#00829B] hover:text-[#00829B] transition-colors bg-white shadow-2xs"
+            >
+              <span>Back to Home</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-
-          <Link
-            href="/patient-portal/signup"
-            className="text-xs font-bold text-[#00829B] hover:underline"
-          >
-            <span className="hidden sm:inline">Create Account →</span>
-            <span className="sm:hidden">Sign Up →</span>
-          </Link>
         </div>
+      </header>
 
-        {/* Form Container */}
-        <div className="my-auto py-8 max-w-md w-full mx-auto">
-          {isNewPatientStep ? (
-            <div>
-              {/* Header */}
-              <div className="mb-6">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold uppercase tracking-wider mb-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  Email Verified • Registration
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1A1A1A] tracking-tight">
-                  Complete Your Patient Details
-                </h2>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1.5">
-                  Welcome to InspireZest! Your email <strong className="text-gray-800">{newPatientEmail || email}</strong> has been verified. Please provide your clinical profile details to register your digital patient file.
-                </p>
-              </div>
+      {/* 2. Main Container (Two-Column Google Stitch Split Layout) */}
+      <main className="flex-1 mx-auto w-full max-w-[90rem] 2xl:max-w-[110rem] px-4 sm:px-8 lg:px-10 py-8 lg:py-12 my-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          
+          {/* Left Column: High-Fidelity Authentication Form (7 Cols) */}
+          <div className="lg:col-span-7 max-w-2xl mx-auto w-full">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 border border-[#00829B]/10 shadow-xl shadow-[#0A1A22]/5 relative overflow-hidden">
+              
+              {/* Decorative Subtle Accent Ribbon */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#00829B] via-[#0E88AA] to-[#22A06B]" />
 
-              {error && (
-                <div className="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-xs text-rose-700 font-medium animate-in fade-in">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
-                  <span>{error}</span>
+              {/* Step A: New Patient Profile Onboarding */}
+              {isNewPatientStep ? (
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E6F7F9] text-[#00829B] text-xs font-bold tracking-wide uppercase mb-3 border border-[#D0F0F5]">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    New Patient Registration
+                  </div>
+
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1A22] tracking-tight">
+                    Complete Your Patient Profile
+                  </h1>
+                  <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+                    Please provide your clinical demographics to create your digital health record for <strong className="text-[#00829B]">{newPatientEmail}</strong>.
+                  </p>
+
+                  {error && (
+                    <div className="mt-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleCompleteNewPatient} className="mt-6 space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Full Legal Name *</label>
+                      <div className="relative">
+                        <User className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          required
+                          value={newPatientData.name}
+                          onChange={(e) => setNewPatientData({ ...newPatientData, name: e.target.value })}
+                          placeholder="e.g. Ananya Sharma"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Contact Phone Number *</label>
+                        <div className="relative">
+                          <Phone className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
+                          <input
+                            type="tel"
+                            required
+                            value={newPatientData.phone}
+                            onChange={(e) => setNewPatientData({ ...newPatientData, phone: e.target.value })}
+                            placeholder="+91 9876543210"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Age *</label>
+                          <input
+                            type="number"
+                            required
+                            min="1"
+                            max="120"
+                            value={newPatientData.age}
+                            onChange={(e) => setNewPatientData({ ...newPatientData, age: e.target.value })}
+                            className="w-full px-3 py-2.5 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm text-center"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Gender *</label>
+                          <select
+                            value={newPatientData.gender}
+                            onChange={(e) => setNewPatientData({ ...newPatientData, gender: e.target.value as any })}
+                            className="w-full px-2 py-2.5 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm bg-white"
+                          >
+                            <option value="Female">Female</option>
+                            <option value="Male">Male</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Blood Group *</label>
+                        <select
+                          value={newPatientData.bloodGroup}
+                          onChange={(e) => setNewPatientData({ ...newPatientData, bloodGroup: e.target.value })}
+                          className="w-full px-3 py-2.5 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm bg-white"
+                        >
+                          {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map((bg) => (
+                            <option key={bg} value={bg}>{bg}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Emergency Contact Person & Phone</label>
+                        <input
+                          type="text"
+                          value={newPatientData.emergencyContact}
+                          onChange={(e) => setNewPatientData({ ...newPatientData, emergencyContact: e.target.value })}
+                          placeholder="e.g. Spouse (+91 9876543211)"
+                          className="w-full px-3 py-2.5 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Residential Address</label>
+                      <input
+                        type="text"
+                        value={newPatientData.address}
+                        onChange={(e) => setNewPatientData({ ...newPatientData, address: e.target.value })}
+                        placeholder="House / Street, City, State"
+                        className="w-full px-3 py-2.5 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full mt-2 inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white font-bold text-sm tracking-wide shadow-md hover:shadow-cyan-900/30 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <>
+                          <RotateCw className="w-4 h-4 animate-spin" />
+                          <span>Finalizing Registration...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Complete Registration & Access Portal</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                /* Step B: Standard Sign In */
+                <div>
+                  {/* Status Pill */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E6F7F9] text-[#00829B] text-xs font-bold tracking-wide uppercase border border-[#D0F0F5]">
+                      <span className="w-2 h-2 rounded-full bg-[#00829B] animate-pulse" />
+                      <span>Secure Patient Access</span>
+                    </div>
+
+                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      Firebase Auth Enabled
+                    </span>
+                  </div>
+
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1A22] tracking-tight">
+                    Sign In to Patient Portal
+                  </h1>
+                  <p className="mt-1.5 text-sm text-gray-600 leading-relaxed">
+                    Access your medical records, book clinical appointments, and manage prescriptions.
+                  </p>
+
+                  {/* Mode Switcher Tabs */}
+                  <div className="mt-5 p-1 bg-[#F4F6F6] rounded-xl flex items-center text-xs font-bold">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode('password');
+                        setError(null);
+                      }}
+                      className={`flex-1 py-2 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                        authMode === 'password'
+                          ? 'bg-white text-[#00829B] shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Email & Password</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode('otp');
+                        setError(null);
+                      }}
+                      className={`flex-1 py-2 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                        authMode === 'otp'
+                          ? 'bg-white text-[#00829B] shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <KeyRound className="w-3.5 h-3.5" />
+                      <span>Email OTP Code</span>
+                    </button>
+                  </div>
+
+                  {/* Error / Success Notifications */}
+                  {error && (
+                    <div className="mt-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  {successMsg && (
+                    <div className="mt-4 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                      <span>{successMsg}</span>
+                    </div>
+                  )}
+
+                  {/* FORM 1: EMAIL & PASSWORD (PRIMARY) */}
+                  {authMode === 'password' ? (
+                    <form onSubmit={handlePasswordLogin} className="mt-6 space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                          Email Address
+                        </label>
+                        <div className="relative">
+                          <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
+                          <input
+                            type="email"
+                            required
+                            autoComplete="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="patient@inspirezest.com"
+                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="block text-xs font-bold text-gray-700">
+                            Password
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setResetEmail(email);
+                              setShowForgotModal(true);
+                              setError(null);
+                            }}
+                            className="text-xs font-semibold text-[#00829B] hover:text-[#006C82] transition-colors cursor-pointer"
+                          >
+                            Forgot Password?
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            required
+                            autoComplete="current-password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••••••"
+                            className="w-full pl-10 pr-11 py-3 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm bg-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-600 select-none">
+                          <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="rounded border-gray-300 text-[#00829B] focus:ring-[#00829B]"
+                          />
+                          <span>Remember my credentials</span>
+                        </label>
+
+                        {/* Quick Demo Fill button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEmail('patient@inspirezest.com');
+                            setPassword('patient123');
+                          }}
+                          className="text-[11px] font-semibold text-[#0E88AA] hover:underline"
+                        >
+                          Auto-fill Demo Patient
+                        </button>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full mt-2 inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white font-bold text-sm tracking-wide shadow-md hover:shadow-cyan-900/30 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        {loading ? (
+                          <>
+                            <RotateCw className="w-4 h-4 animate-spin" />
+                            <span>Authenticating Patient...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Sign In to Patient Portal</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  ) : (
+                    /* FORM 2: EMAIL OTP */
+                    <div className="mt-6">
+                      {!otpSent ? (
+                        <form onSubmit={handleSendOtp} className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                              Email Address for One-Time Password
+                            </label>
+                            <div className="relative">
+                              <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
+                              <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="patient@inspirezest.com"
+                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm bg-white"
+                              />
+                            </div>
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white font-bold text-sm tracking-wide shadow-md hover:shadow-cyan-900/30 transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            {loading ? <RotateCw className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                            <span>Send Verification Code</span>
+                          </button>
+                        </form>
+                      ) : (
+                        <form onSubmit={handleVerifyOtp} className="space-y-4">
+                          <div className="p-3 bg-[#E6F7F9] rounded-xl text-xs text-[#00829B] flex items-center justify-between">
+                            <span>Code sent to <strong>{email}</strong></span>
+                            <button
+                              type="button"
+                              onClick={() => setOtpSent(false)}
+                              className="font-bold underline cursor-pointer"
+                            >
+                              Change
+                            </button>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                              Enter 6-Digit Verification Code
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              maxLength={6}
+                              value={otp}
+                              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                              placeholder="e.g. 492815"
+                              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-lg tracking-[0.3em] font-mono text-center font-bold bg-white"
+                            />
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white font-bold text-sm tracking-wide shadow-md hover:shadow-cyan-900/30 transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            {loading ? <RotateCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                            <span>Verify & Sign In</span>
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  )}
+
+                  {/* PROMINENT LINK TO SEPARATE SIGN UP PAGE */}
+                  <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                    <span className="text-gray-600">Don&apos;t have an InspireZest patient account?</span>
+                    <Link
+                      href="/patient-portal/signup"
+                      className="inline-flex items-center gap-1.5 font-bold text-[#00829B] hover:text-[#0E88AA] px-4 py-2 rounded-full bg-[#E6F7F9] hover:bg-[#D0F0F5] transition-all border border-[#D0F0F5]"
+                    >
+                      <span>Create an Account</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+
+                  {/* Accreditations & Hospital Badges */}
+                  <div className="mt-8 pt-6 border-t border-gray-100">
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5 text-center">
+                      Institutional Clinical Compliance & Trust
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-gray-500">
+                      <div className="flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                        <span>NABH Accredited</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Award className="w-4 h-4 text-amber-500" />
+                        <span>JCI Gold Seal</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-[#00829B]" />
+                        <span>HIPAA Compliant</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              <form onSubmit={handleCompleteNewPatient} className="space-y-4">
-                {/* Full Legal Name */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">
-                    Full Legal Name <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <User className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      value={newPatientData.name}
-                      onChange={(e) => setNewPatientData({ ...newPatientData, name: e.target.value })}
-                      placeholder="e.g. Thanzeer Mohammed"
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] text-gray-900"
-                    />
-                  </div>
-                </div>
-
-                {/* Phone Number */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">
-                    Contact Phone Number <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <Phone className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="tel"
-                      required
-                      value={newPatientData.phone}
-                      onChange={(e) => setNewPatientData({ ...newPatientData, phone: e.target.value })}
-                      placeholder="+91 9567333266"
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] text-gray-900"
-                    />
-                  </div>
-                </div>
-
-                {/* Age & Gender */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">
-                      Age <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                        <Calendar className="w-4 h-4" />
-                      </div>
-                      <input
-                        type="number"
-                        min={1}
-                        max={120}
-                        required
-                        value={newPatientData.age}
-                        onChange={(e) => setNewPatientData({ ...newPatientData, age: e.target.value })}
-                        placeholder="28"
-                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] text-gray-900"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">
-                      Gender <span className="text-rose-500">*</span>
-                    </label>
-                    <select
-                      value={newPatientData.gender}
-                      onChange={(e) => setNewPatientData({ ...newPatientData, gender: e.target.value as any })}
-                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] text-gray-900"
-                    >
-                      <option value="Female">Female</option>
-                      <option value="Male">Male</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Blood Group */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">
-                    Blood Group
-                  </label>
-                  <select
-                    value={newPatientData.bloodGroup}
-                    onChange={(e) => setNewPatientData({ ...newPatientData, bloodGroup: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] text-gray-900"
-                  >
-                    <option value="O+">O Positive (O+)</option>
-                    <option value="A+">A Positive (A+)</option>
-                    <option value="B+">B Positive (B+)</option>
-                    <option value="AB+">AB Positive (AB+)</option>
-                    <option value="O-">O Negative (O-)</option>
-                    <option value="A-">A Negative (A-)</option>
-                    <option value="B-">B Negative (B-)</option>
-                    <option value="AB-">AB Negative (AB-)</option>
-                    <option value="Unknown">Don't Know / Unknown</option>
-                  </select>
-                </div>
-
-                {/* Residential Address */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">
-                    Residential Address / City
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="text"
-                      value={newPatientData.address}
-                      onChange={(e) => setNewPatientData({ ...newPatientData, address: e.target.value })}
-                      placeholder="e.g. S N Junction, Karbala, Kollam"
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] text-gray-900"
-                    />
-                  </div>
-                </div>
-
-                {/* Emergency Contact */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">
-                    Emergency Contact (Name & Phone)
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <ShieldAlert className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="text"
-                      value={newPatientData.emergencyContact}
-                      onChange={(e) => setNewPatientData({ ...newPatientData, emergencyContact: e.target.value })}
-                      placeholder="e.g. Spouse / Parent - +91 9876543210"
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] text-gray-900"
-                    />
-                  </div>
-                </div>
-
-                {/* Set Password (Optional) */}
-                {!newPatientPassword && (
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">
-                      Create Master Password (Optional)
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                        <Lock className="w-4 h-4" />
-                      </div>
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={newPatientData.password}
-                        onChange={(e) => setNewPatientData({ ...newPatientData, password: e.target.value })}
-                        placeholder="Create a password for instant sign in"
-                        className="w-full pl-10 pr-11 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] text-gray-900"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        tabIndex={-1}
-                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="w-full justify-center py-3 bg-[#00829B] hover:bg-[#006C82] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all mt-4"
-                  isLoading={loading}
-                >
-                  <span>Complete Profile & Enter Patient Portal</span>
-                  <ArrowRight className="w-4 h-4 ml-1.5" />
-                </Button>
-
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsNewPatientStep(false);
-                      setOtpSent(false);
-                      setOtp('');
-                    }}
-                    className="text-xs text-gray-500 hover:text-gray-900 font-semibold"
-                  >
-                    ← Cancel / Back to Sign In
-                  </button>
-                </div>
-              </form>
             </div>
-          ) : (
-            <div>
-              {/* Header */}
-              <div className="mb-8">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00829B]/10 text-[#00829B] text-xs font-bold uppercase tracking-wider mb-2">
-                  <HeartPulse className="w-3.5 h-3.5" />
-                  Patient Sign In
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1A1A1A] tracking-tight">
-                  Access your medical profile
-                </h2>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1.5">
-                  Enter your registered email for passwordless OTP verification or sign in with password.
-                </p>
+          </div>
+
+          {/* Right Column: Inspiring Healthcare Side Panel (5 Cols) */}
+          <div className="lg:col-span-5 space-y-6">
+            
+            {/* Editorial Hero Visual Card */}
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-gray-200 aspect-[4/3] group">
+              <img
+                src="https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1200&q=80"
+                alt="Compassionate doctor consulting patient at InspireZest Hospital"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A1A22]/90 via-[#0A1A22]/40 to-transparent" />
+              
+              {/* Floating Satisfaction Badge */}
+              <div className="absolute top-4 right-4 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md text-[#0A1A22] text-xs font-bold shadow-lg flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>99.4% Patient Satisfaction</span>
               </div>
 
-          {/* Quick Sandbox / Demo Switcher Buttons */}
-          <div className="mb-6 p-3 rounded-xl bg-[#E6F3F5] border border-[#00829B]/20 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className="font-semibold text-[#00829B] flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              Quick Fill:
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={fillResendTestUser}
-                className="px-2.5 py-1 rounded-lg bg-white text-[#00829B] font-bold text-[11px] shadow-xs hover:bg-[#00829B] hover:text-white transition-colors border border-[#00829B]/25"
-                title="Uses your authorized Resend email to receive live email"
-              >
-                thanzeerwork@gmail.com
-              </button>
-              <button
-                type="button"
-                onClick={fillDemoPatient}
-                className="px-2.5 py-1 rounded-lg bg-white text-gray-700 font-semibold text-[11px] shadow-xs hover:bg-gray-100 transition-colors border border-gray-200"
-              >
-                Eleanor Vance
-              </button>
+              {/* Text Overlay at Bottom */}
+              <div className="absolute bottom-5 left-5 right-5 text-white">
+                <h3 className="text-lg font-bold">Compassionate Clinical Excellence</h3>
+                <p className="mt-1 text-xs text-white/80 line-clamp-2">
+                  Partnering with world-renowned specialists to deliver ethical, patient-first outpatient and inpatient care.
+                </p>
+              </div>
             </div>
-          </div>
 
-          {/* Auth Method Switcher (Segmented Control) */}
-          <div className="flex rounded-xl bg-gray-100 p-1.5 border border-gray-200 mb-6 shadow-inner">
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMethod('otp');
-                setError(null);
-              }}
-              className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
-                authMethod === 'otp'
-                  ? 'bg-white text-[#00829B] shadow-sm ring-1 ring-black/5'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <KeyRound className="w-3.5 h-3.5" />
-              <span>Instant OTP Code</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMethod('password');
-                setError(null);
-              }}
-              className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
-                authMethod === 'password'
-                  ? 'bg-white text-[#00829B] shadow-sm ring-1 ring-black/5'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span>Email & Password</span>
-            </button>
-          </div>
+            {/* Feature Perks Box */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-3.5 text-xs text-gray-700">
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg bg-[#E6F7F9] text-[#00829B] flex items-center justify-center shrink-0 mt-0.5">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <strong className="text-gray-900 block font-semibold">24x7 Doctor Appointments</strong>
+                  <span className="text-gray-500">Real-time scheduling with attending specialists and top clinicians.</span>
+                </div>
+              </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-xs text-rose-700 font-medium animate-in fade-in">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
-              <span>{error}</span>
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg bg-[#E6F7F9] text-[#00829B] flex items-center justify-center shrink-0 mt-0.5">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <strong className="text-gray-900 block font-semibold">Verified Digital Prescriptions</strong>
+                  <span className="text-gray-500">Access tamper-evident clinical prescriptions and diagnostic summaries.</span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg bg-[#E6F7F9] text-[#00829B] flex items-center justify-center shrink-0 mt-0.5">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <strong className="text-gray-900 block font-semibold">Real-Time OPD Telemetry</strong>
+                  <span className="text-gray-500">Live consultation queue status and doctor room discovery.</span>
+                </div>
+              </div>
             </div>
-          )}
 
-          {/* AUTH FORMS */}
-          {authMethod === 'otp' ? (
-            !otpSent ? (
-              /* Step 1: Send OTP */
-              <form onSubmit={handleSendOtp} className="space-y-5">
-                <div>
-                  <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                    Registered Email Address
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <Mail className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. thanzeerwork@gmail.com"
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:border-transparent transition-all shadow-xs text-gray-900"
-                    />
-                  </div>
-                  <p className="mt-2 text-[11px] text-gray-500">
-                    We will send a secure 6-digit one-time passcode to this address.
-                  </p>
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="w-full justify-center py-3 bg-[#00829B] hover:bg-[#006C82] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
-                  isLoading={loading}
-                >
-                  <span>Send Verification Code</span>
-                  <ArrowRight className="w-4 h-4 ml-1.5" />
-                </Button>
-              </form>
-            ) : (
-              /* Step 2: Verify OTP (NO AUTOFILL; USER TYPES CODE MANUALLY) */
-              <form onSubmit={handleVerifyOtp} className="space-y-5">
-                {sentViaResend ? (
-                  <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 shadow-xs">
-                    <p className="font-bold flex items-center gap-2 text-emerald-800">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      Verification Code Dispatched via Resend
-                    </p>
-                    <p className="text-[11px] mt-1.5 text-emerald-700 leading-relaxed">
-                      Sent to <strong>{email || patientOtpPendingEmail}</strong>. If you do not see it in your primary inbox, please check your <strong>Spam / Junk</strong> folder or <strong>Promotions</strong> tab!
-                    </p>
-                  </div>
-                ) : (
-                  <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 shadow-xs">
-                    <p className="font-bold flex items-center gap-2 text-amber-800">
-                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                      Resend Sandbox Restriction Active
-                    </p>
-                    <p className="text-[11px] mt-1 text-amber-800 leading-relaxed">
-                      Resend free mode only delivers emails to <strong>thanzeerwork@gmail.com</strong>. Since you used another address, your code is provided below for testing:
-                    </p>
-                    <div className="mt-2.5 inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-amber-300 font-mono font-bold text-sm text-[#00829B] shadow-xs">
-                      Code: {activeOtpCode || '492815'}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                    Enter Six-Digit Verification Code
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <KeyRound className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="text"
-                      maxLength={6}
-                      required
-                      autoFocus
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      placeholder="• • • • • •"
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-xl font-mono tracking-[0.4em] text-center font-extrabold focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:border-transparent transition-all shadow-xs text-gray-900"
-                    />
-                  </div>
-                  <p className="mt-2 text-[11px] text-gray-500 text-center">
-                    Type or paste the 6 digits you received.
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between text-xs pt-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOtpSent(false);
-                      setOtp('');
-                    }}
-                    className="text-gray-500 hover:text-gray-900 font-medium"
-                  >
-                    ← Change Email
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    className="text-[#00829B] font-bold hover:underline flex items-center gap-1.5"
-                  >
-                    <RotateCw className="w-3.5 h-3.5" />
-                    Resend Code
-                  </button>
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="w-full justify-center py-3 bg-[#00829B] hover:bg-[#006C82] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
-                  isLoading={loading}
-                >
-                  Verify & Access Portal
-                </Button>
-              </form>
-            )
-          ) : (
-            /* Password Login */
-            <form onSubmit={handlePasswordLogin} className="space-y-5">
+            {/* 24x7 Emergency Contact Helpline */}
+            <div className="rounded-2xl p-5 bg-gradient-to-r from-[#00829B] to-[#0E88AA] text-white shadow-lg flex items-center justify-between">
               <div>
-                <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Mail className="w-4 h-4" />
-                  </div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-white/80">Immediate Medical Care</p>
+                <h4 className="text-base font-extrabold mt-0.5">24x7 Emergency Helpline</h4>
+                <p className="text-xs text-white/90 font-mono font-bold mt-1">+91 9567333266</p>
+              </div>
+              <a
+                href="tel:9567333266"
+                className="px-4 py-2 rounded-full bg-white text-[#00829B] font-bold text-xs hover:bg-white/90 transition-all shadow-sm"
+              >
+                Call Now
+              </a>
+            </div>
+
+          </div>
+
+        </div>
+      </main>
+
+      {/* 3. Password Reset Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-gray-200 relative animate-in fade-in zoom-in-95">
+            <button
+              type="button"
+              onClick={() => {
+                setShowForgotModal(false);
+                setResetSent(false);
+              }}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="w-10 h-10 rounded-xl bg-[#E6F7F9] text-[#00829B] flex items-center justify-center mb-3">
+              <KeyRound className="w-5 h-5" />
+            </div>
+
+            <h3 className="text-lg font-bold text-[#0A1A22]">Reset Your Patient Password</h3>
+            <p className="mt-1 text-xs text-gray-600">
+              Enter your registered email address and we will send you a secure password reset link via Firebase Authentication.
+            </p>
+
+            {resetSent ? (
+              <div className="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
+                <div className="flex items-center gap-2 font-bold mb-1 text-emerald-900">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Reset Link Dispatched</span>
+                </div>
+                <p>
+                  Please check your inbox at <strong>{resetEmail}</strong> and follow the link to establish a new password.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForgotModal(false);
+                    setResetSent(false);
+                  }}
+                  className="mt-4 w-full py-2.5 rounded-xl bg-[#00829B] text-white font-bold text-xs hover:bg-[#006C82] transition-colors"
+                >
+                  Return to Sign In
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleResetPassword} className="mt-4 space-y-3.5">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
                   <input
                     type="email"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="patient@example.com"
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:border-transparent transition-all shadow-xs text-gray-900"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="patient@inspirezest.com"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:border-[#0E88AA] focus:ring-3 focus:ring-[#0E88AA]/15 outline-hidden text-sm"
                   />
                 </div>
-              </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
-                    Password
-                  </label>
-                  <a href="#" className="text-xs font-medium text-[#00829B] hover:underline">
-                    Forgot password?
-                  </a>
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-11 py-3 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:border-transparent transition-all shadow-xs text-gray-900"
-                  />
+                <div className="flex items-center gap-2 pt-2">
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                    onClick={() => setShowForgotModal(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-semibold text-xs hover:bg-gray-50 transition-colors"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={resetLoading}
+                    className="flex-1 py-2.5 rounded-xl bg-[#00829B] text-white font-bold text-xs hover:bg-[#006C82] transition-colors disabled:opacity-50"
+                  >
+                    {resetLoading ? 'Sending...' : 'Send Reset Link'}
                   </button>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    defaultChecked
-                    className="w-4 h-4 text-[#00829B] border-gray-300 rounded focus:ring-[#00829B]"
-                  />
-                  <span className="text-gray-600">Remember this workstation</span>
-                </label>
-              </div>
-
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full justify-center py-3 bg-[#00829B] hover:bg-[#006C82] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
-                isLoading={loading}
-              >
-                Sign In with Password
-              </Button>
-            </form>
-          )}
-
-              {/* Bottom Switcher */}
-              <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-                <p className="text-xs text-gray-600">
-                  New patient at InspireZest Hospitals?{' '}
-                  <Link
-                    href="/patient-portal/signup"
-                    className="font-bold text-[#00829B] hover:underline"
-                  >
-                    Register your health profile
-                  </Link>
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Security / Compliance Badges */}
-        <div className="pt-6 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-[11px] text-gray-400">
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#00829B]" />
-            <span>256-Bit Encrypted Healthcare Portal • HIPAA Compliant</span>
+              </form>
+            )}
           </div>
-          <span>© {new Date().getFullYear()} InspireZest Multispeciality Healthcare</span>
         </div>
-      </div>
+      )}
+
+      {/* 4. Footer */}
+      <footer className="border-t border-[#EAEAEA] bg-white py-4 text-center text-xs text-gray-500">
+        <p>© 2026 InspireZest Hospital. All Rights Reserved. HIPAA & NABH Accredited Healthcare System.</p>
+      </footer>
     </div>
   );
 }

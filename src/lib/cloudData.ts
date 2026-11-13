@@ -411,6 +411,7 @@ export const CLOUD_PATIENTS: Patient[] = [
     address: '2nd Floor, S N Junction, Velayudha Mansion, Junction, Karbala, Kollam',
     emergencyContact: 'Thomas Vance (Spouse) - +91 9567333266',
     registeredDate: '2026-02-14',
+    password: 'patient123',
   },
   {
     id: 'pat-2',
@@ -423,6 +424,7 @@ export const CLOUD_PATIENTS: Patient[] = [
     address: 'Karbala, Kollam, Kerala',
     emergencyContact: 'Diane Brody (Wife) - +91 9567333266',
     registeredDate: '2026-03-01',
+    password: 'marcus@2026',
   },
   {
     id: 'pat-3',
@@ -435,6 +437,7 @@ export const CLOUD_PATIENTS: Patient[] = [
     address: 'Velayudha Mansion, Karbala, Kollam',
     emergencyContact: 'Michael Chen (Brother) - +91 9567333266',
     registeredDate: '2026-04-12',
+    password: 'sarah@2026',
   },
   {
     id: 'pat-4',
@@ -447,6 +450,7 @@ export const CLOUD_PATIENTS: Patient[] = [
     address: 'S N Junction, Kollam, Kerala',
     emergencyContact: 'Claire Miller (Spouse) - +91 9567333266',
     registeredDate: '2026-05-20',
+    password: 'miller@2026',
   },
 ];
 

@@ -199,8 +199,8 @@ export const DoctorSidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Desktop Sidebar (>= md) */}
-      <aside className="hidden md:flex w-64 bg-white border-r border-[#E5E7EB] flex-col shrink-0 min-h-screen">
+      {/* 4. Desktop Fixed Sidebar (>= md) */}
+      <aside className="hidden md:flex w-64 bg-white border-r border-[#E5E7EB] flex-col fixed inset-y-0 left-0 h-screen z-30">
         {/* Doctor Brand / Clinic Wing */}
         <div className="p-5 border-b border-[#E5E7EB]">
           <Link href="/doctor-portal" className="block group">
@@ -287,6 +287,9 @@ export const DoctorSidebar: React.FC = () => {
           </button>
         </div>
       </aside>
+
+      {/* 5. Desktop Spacer to preserve layout flow beside fixed sidebar */}
+      <div className="hidden md:block w-64 shrink-0" aria-hidden="true" />
     </>
   );
 };

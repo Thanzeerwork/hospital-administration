@@ -207,9 +207,9 @@ export const AdminSidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Desktop Sidebar (>= md) */}
+      {/* 4. Desktop Fixed Sidebar (>= md) */}
       <aside
-        className={`hidden md:flex bg-[#0A1A22] text-white flex-col shrink-0 min-h-screen transition-all duration-200 border-r border-white/10 ${
+        className={`hidden md:flex bg-[#0A1A22] text-white flex-col fixed inset-y-0 left-0 h-screen z-30 transition-all duration-200 border-r border-white/10 ${
           collapsed ? 'w-18' : 'w-64'
         }`}
       >
@@ -311,6 +311,14 @@ export const AdminSidebar: React.FC = () => {
           )}
         </div>
       </aside>
+
+      {/* 5. Desktop Spacer to preserve natural layout flow beside the fixed sidebar */}
+      <div
+        className={`hidden md:block shrink-0 transition-all duration-200 ${
+          collapsed ? 'w-18' : 'w-64'
+        }`}
+        aria-hidden="true"
+      />
     </>
   );
 };

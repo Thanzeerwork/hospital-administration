@@ -40,6 +40,7 @@ export interface Patient {
   address: string;
   emergencyContact: string;
   registeredDate: string;
+  password?: string;
 }
 
 export interface PrescriptionMedicine {

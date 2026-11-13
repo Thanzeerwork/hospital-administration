@@ -144,10 +144,10 @@ export default function AdminHeroSettingsPage() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-[#F8FAFC]">
+    <div className="flex flex-col md:flex-row min-h-screen md:h-screen md:overflow-hidden bg-[#F8FAFC]">
       <AdminSidebar />
 
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sticky top-0 z-20">
           <div>

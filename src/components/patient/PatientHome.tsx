@@ -121,8 +121,8 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
       title: 'Accessible & Trusted Healthcare',
       description:
         'Delivering reliable, ethical, and affordable healthcare without compromising on clinical standards.',
-      image: 'https://www.meditrinahospitals.com/images/home/big-banner/accessible-trusted.webp',
-      alt: 'InspireZest Hospitals building exterior',
+      image: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=1920&q=80',
+      alt: 'InspireZest Hospitals modern medical center campus exterior',
     },
     {
       id: 2,
