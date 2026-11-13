@@ -33,13 +33,13 @@ export const InspireZestLogo: React.FC<InspireZestLogoProps> = ({
     );
   }
 
-  // Full horizontal SVG logo - pure vector with NO white background box
+  // Standard responsive heights across mobile (<640px), tablet (640-1024px), and desktop (>1024px)
   const heightStyles = {
-    xs: 'h-8 w-auto',
-    sm: 'h-11 w-auto',
-    md: 'h-13 sm:h-14 w-auto',
-    lg: 'h-15 sm:h-16 lg:h-[66px] w-auto',
-    xl: 'h-20 sm:h-24 w-auto',
+    xs: 'h-6 sm:h-7 w-auto',
+    sm: 'h-7 sm:h-8 md:h-9 w-auto',
+    md: 'h-8 sm:h-10 md:h-12 w-auto',
+    lg: 'h-[36px] xs:h-[40px] sm:h-[48px] md:h-[54px] lg:h-[64px] xl:h-[66px] w-auto',
+    xl: 'h-12 sm:h-16 md:h-20 lg:h-24 w-auto',
   };
 
   const src = onDark
@@ -50,8 +50,9 @@ export const InspireZestLogo: React.FC<InspireZestLogoProps> = ({
     <img
       src={src}
       alt="InspireZest Hospital - Multispeciality Healthcare Center"
-      className={`object-contain max-w-full ${heightStyles[size] || 'h-11 w-auto'} ${className}`}
+      className={`object-contain shrink-0 select-none ${heightStyles[size] || 'h-[40px] w-auto'} ${className}`}
       loading={priority ? undefined : 'lazy'}
+      style={{ maxWidth: '100%' }}
     />
   );
 };

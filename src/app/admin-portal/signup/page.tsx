@@ -17,6 +17,9 @@ import {
   AlertCircle,
   ArrowRight,
   Briefcase,
+  Eye,
+  EyeOff,
+  ChevronLeft,
 } from 'lucide-react';
 
 export default function AdminSignupPage() {
@@ -32,6 +35,7 @@ export default function AdminSignupPage() {
     confirmPassword: '',
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,7 +80,24 @@ export default function AdminSignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A1A22] flex flex-col justify-center py-12 sm:px-6 lg:px-8 text-white">
+    <div className="min-h-screen bg-[#0A1A22] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 text-white">
+      {/* Return link */}
+      <div className="sm:mx-auto sm:w-full sm:max-w-md mb-2 flex items-center justify-between">
+        <Link
+          href="/admin-portal/login"
+          className="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4 text-[#00829B]" />
+          <span>Back to Admin Sign In</span>
+        </Link>
+        <Link
+          href="/patient-portal"
+          className="text-xs text-white/40 hover:text-white transition-colors"
+        >
+          Hospital Home
+        </Link>
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Brand Header */}
         <div className="flex justify-center mb-4">
@@ -193,15 +214,25 @@ export default function AdminSignupPage() {
             {/* Password & Confirm */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-white/90 uppercase tracking-wider mb-1.5">
-                  Password <span className="text-[#DC5555]">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-white/90 uppercase tracking-wider">
+                    Password <span className="text-[#DC5555]">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                    className="text-[10px] text-white/50 hover:text-white"
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/40">
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -220,7 +251,7 @@ export default function AdminSignupPage() {
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}

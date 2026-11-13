@@ -115,7 +115,7 @@ export const DoctorAppointmentsView: React.FC<DoctorAppointmentsViewProps> = ({
       {/* Modern Data Table */}
       <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full min-w-[640px] text-left text-xs border-collapse">
             <thead>
               <tr className="bg-[#F4F6F6] border-b border-[#E5E7EB] text-[#666666] font-bold uppercase tracking-wider text-[11px]">
                 <th className="p-3.5">Patient Details</th>

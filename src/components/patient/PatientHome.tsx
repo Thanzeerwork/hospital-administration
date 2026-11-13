@@ -53,6 +53,31 @@ interface PatientHomeProps {
   onViewDoctorProfile: (doctor: Doctor) => void;
 }
 
+const DEFAULT_SPECIALITIES = [
+  'Anaesthesiology & Critical Care',
+  'Cardiology',
+  'Cardiothoracic Vascular Surgery',
+  'Clinical Pathology',
+  'Dentistry',
+  'Dermatology',
+  'ENT',
+  'Gastroenterology',
+  'General Medicine',
+  'General Surgery',
+  'Infertility and Reproductive Medicine',
+  'Nephrology',
+  'Neurology',
+  'Neurosurgery',
+  'Obstetrics & Gynaecology',
+  'Orthopaedics',
+  'Paediatrics & Neonatology',
+  'Psychiatry',
+  'Pulmonology',
+  'Radiology',
+  'Surgical Gastroenterology',
+  'Urology',
+];
+
 export const PatientHome: React.FC<PatientHomeProps> = ({
   onSelectCategory,
   onNavigateDoctors,
@@ -125,31 +150,11 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
     },
   ];
 
-  // 22 Meditrina Specialities List
-  const allSpecialities = [
-    'Anaesthesiology & Critical Care',
-    'Cardiology',
-    'Cardiothoracic Vascular Surgery',
-    'Clinical Pathology',
-    'Dentistry',
-    'Dermatology',
-    'ENT',
-    'Gastroenterology',
-    'General Medicine',
-    'General Surgery',
-    'Infertility and Reproductive Medicine',
-    'Nephrology',
-    'Neurology',
-    'Neurosurgery',
-    'Obstetrics & Gynaecology',
-    'Orthopaedics',
-    'Paediatrics & Neonatology',
-    'Psychiatry',
-    'Pulmonology',
-    'Radiology',
-    'Surgical Gastroenterology',
-    'Urology',
-  ];
+  // Dynamic Specialities List sourced directly from admin-controlled HospitalContext
+  const activeSpecialitiesList =
+    specializations && specializations.length > 0
+      ? specializations.map((s) => s.name)
+      : DEFAULT_SPECIALITIES;
 
   // Filtered doctors for home directory
   const displayDoctors = doctors.slice(0, 4);
@@ -333,21 +338,21 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
               <source src={heroConfig.videoUrl} type="video/mp4" />
               <source src={heroConfig.videoUrl} type="video/webm" />
               <img
-                src={heroConfig.imageUrl || 'https://cdn.sanity.io/images/0xgev689/production/6aaacb898a16542f6906ef4a221bb9e480d147c0-1481x861.png?w=1920&q=72&fit=max&auto=format'}
+                src={heroConfig.imageUrl || 'https://pub-f6697a3e2acd4048a86b5ed54d969979.r2.dev/uploads/1794544119196-InspireZest_Hospital_at_Dusk.png'}
                 alt="Hospital Hero Media"
                 className="w-full h-full object-cover object-center"
               />
             </video>
           ) : (
             <picture className="block w-full h-full">
-              {heroConfig?.mobileImageUrl && (
+              {heroConfig?.mobileImageUrl && !heroConfig.mobileImageUrl.includes('sanity.io') && (
                 <source
                   media="(max-width: 768px)"
                   srcSet={heroConfig.mobileImageUrl}
                 />
               )}
               <img
-                src={heroConfig?.imageUrl || 'https://cdn.sanity.io/images/0xgev689/production/6aaacb898a16542f6906ef4a221bb9e480d147c0-1481x861.png?w=1920&q=72&fit=max&auto=format'}
+                src={heroConfig?.imageUrl || 'https://pub-f6697a3e2acd4048a86b5ed54d969979.r2.dev/uploads/1794544119196-InspireZest_Hospital_at_Dusk.png'}
                 alt="InspireZest Hospital home banner"
                 className="w-full h-full object-cover object-center"
               />
@@ -632,8 +637,8 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
               <MotionReveal direction="right" duration={0.8} delay={0.15}>
                 {(() => {
                   const visibleSpecialities = showAllSpecialities
-                    ? allSpecialities
-                    : allSpecialities.slice(0, 10);
+                    ? activeSpecialitiesList
+                    : activeSpecialitiesList.slice(0, 10);
 
                   const half = Math.ceil(visibleSpecialities.length / 2);
                   const col1 = visibleSpecialities.slice(0, half);
@@ -1054,7 +1059,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
       </section>
 
       {/* 7. DOCTORS DIRECTORY (The Care You Need From Doctors You Trust) */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-[#FAFBFA] border-t border-b border-[#EAEAEA]">
+      <section className="py-16 sm:py-20 lg:py-24 bg-[#FAFBFA] border-t border-b border-[#EAEAEA] overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
             <MotionReveal direction="left">
@@ -1208,7 +1213,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
       </section>
 
       {/* 8. PATIENT TESTIMONIALS */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-white">
+      <section className="py-16 sm:py-20 lg:py-24 bg-white overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <MotionReveal direction="left" className="max-w-2xl mb-12">
             <span className="text-xs font-bold uppercase tracking-widest text-[#00829B] block mb-2">
@@ -1251,7 +1256,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
       </section>
 
       {/* 9. INSIGHTS & UPDATES (News & Blogs Tabs) */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-[#FAFBFA] border-t border-b border-[#EAEAEA]">
+      <section className="py-16 sm:py-20 lg:py-24 bg-[#FAFBFA] border-t border-b border-[#EAEAEA] overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-6">
             <MotionReveal direction="left">
@@ -1400,7 +1405,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
       </section>
 
       {/* 11. EXPANDING CARE ACROSS INDIA */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-white">
+      <section className="py-16 sm:py-20 lg:py-24 bg-white overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <MotionReveal direction="left" className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
             <div>

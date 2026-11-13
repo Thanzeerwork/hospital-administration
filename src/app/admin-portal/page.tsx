@@ -20,10 +20,10 @@ export default function AdminPortalDashboardPage() {
   }
 
   return (
-    <div className="flex-1 flex bg-[#F4F6F6]">
+    <div className="flex-1 flex flex-col md:flex-row bg-[#F4F6F6] min-h-screen">
       <AdminSidebar />
 
-      <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+      <main className="flex-1 w-full min-w-0 p-4 sm:p-6 md:p-8 overflow-y-auto">
         <div className="max-w-6xl mx-auto">
           <AdminDashboardView
             setActiveTab={(tab) => {

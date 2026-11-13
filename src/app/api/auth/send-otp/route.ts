@@ -90,10 +90,10 @@ export async function POST(req: NextRequest) {
 
       if (resendRes.ok) {
         resendSent = true;
-        resendMessage = `Verification code sent to ${cleanEmail} via Resend`;
+        resendMessage = `Verification code sent to ${cleanEmail} via Resend. Check your inbox and spam folder.`;
       } else {
         console.warn('Resend send warning:', resendData);
-        resendMessage = resendData.message || 'Resend sandbox mode active';
+        resendMessage = resendData.message || 'Resend sandbox limitation';
       }
     } catch (err: any) {
       console.warn('Resend network warning:', err);
@@ -104,8 +104,9 @@ export async function POST(req: NextRequest) {
       success: true,
       message: resendSent
         ? `Verification code dispatched to ${cleanEmail}`
-        : `OTP generated for ${cleanEmail}. (Code: ${otpCode})`,
+        : (resendMessage || `OTP generated for ${cleanEmail}. (Code: ${otpCode})`),
       sentViaResend: resendSent,
+      resendWarning: !resendSent ? resendMessage : null,
       otpCode: otpCode, // Provided for smooth UX testing in sandbox environment
     });
   } catch (error: any) {

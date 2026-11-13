@@ -21,10 +21,15 @@ import {
   Lock,
   User,
   Star,
+  Eye,
+  EyeOff,
+  Copy,
+  Check,
+  KeyRound,
 } from 'lucide-react';
 
 export const AdminDoctorManagement: React.FC = () => {
-  const { doctors, specializations, addDoctor, editDoctor, deleteDoctor } = useHospital();
+  const { doctors, specializations, addDoctor, editDoctor, deleteDoctor, addToast } = useHospital();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>('All');
@@ -33,6 +38,42 @@ export const AdminDoctorManagement: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
   const [deletingDoctorId, setDeletingDoctorId] = useState<string | null>(null);
+
+  // Password Visibility States (Admin Security Controls)
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [showAllPasswords, setShowAllPasswords] = useState(false);
+  const [copiedDoctorId, setCopiedDoctorId] = useState<string | null>(null);
+  const [showAddPassword, setShowAddPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
+
+  const togglePasswordVisibility = (docId: string) => {
+    setVisiblePasswords((prev) => ({
+      ...prev,
+      [docId]: prev[docId] !== undefined ? !prev[docId] : !showAllPasswords,
+    }));
+  };
+
+  const handleToggleShowAllPasswords = () => {
+    const nextState = !showAllPasswords;
+    setShowAllPasswords(nextState);
+    const updated: Record<string, boolean> = {};
+    doctors.forEach((doc) => {
+      updated[doc.id] = nextState;
+    });
+    setVisiblePasswords(updated);
+  };
+
+  const handleCopyPassword = (docId: string, doctorName: string, password?: string) => {
+    const pass = password || 'password123';
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(pass);
+    }
+    setCopiedDoctorId(docId);
+    if (addToast) {
+      addToast(`Password for ${doctorName} copied to clipboard`, 'info', 'Password Copied');
+    }
+    setTimeout(() => setCopiedDoctorId(null), 2000);
+  };
 
   // Form State
   const initialFormState = {
@@ -65,11 +106,13 @@ export const AdminDoctorManagement: React.FC = () => {
 
   const handleOpenAdd = () => {
     setFormData(initialFormState);
+    setShowAddPassword(false);
     setIsAddModalOpen(true);
   };
 
   const handleOpenEdit = (doc: Doctor) => {
     setEditingDoctor(doc);
+    setShowEditPassword(false);
     setFormData({
       name: doc.name,
       specializationId: doc.specializationId,
@@ -180,9 +223,19 @@ export const AdminDoctorManagement: React.FC = () => {
           />
         </div>
 
-        {/* Specialization Filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-[#666666] shrink-0">Specialization:</span>
+        {/* Specialization Filter & Password Controls */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            icon={showAllPasswords ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            onClick={handleToggleShowAllPasswords}
+            className="text-xs"
+          >
+            {showAllPasswords ? 'Mask All Passwords' : 'View All Passwords'}
+          </Button>
+
+          <span className="text-xs font-bold text-[#666666] shrink-0 ml-1">Specialization:</span>
           <select
             value={selectedSpecialization}
             onChange={(e) => setSelectedSpecialization(e.target.value)}
@@ -201,7 +254,7 @@ export const AdminDoctorManagement: React.FC = () => {
       {/* Professional Doctors Table */}
       <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full min-w-[700px] text-left text-xs border-collapse">
             <thead>
               <tr className="bg-[#F4F6F6] border-b border-[#E5E7EB] text-[#666666] font-bold uppercase tracking-wider text-[11px]">
                 <th className="p-3.5">Doctor Information</th>
@@ -242,11 +295,47 @@ export const AdminDoctorManagement: React.FC = () => {
 
                     {/* Credentials */}
                     <td className="p-3.5">
-                      <div className="font-mono text-xs text-[#1A1A1A]">
-                        user: <strong>{doc.username}</strong>
+                      <div className="font-mono text-xs text-[#1A1A1A] flex items-center gap-1.5">
+                        <span className="text-[#666666]">user:</span>
+                        <strong className="text-[#1A1A1A]">{doc.username}</strong>
                       </div>
-                      <div className="text-[11px] text-[#666666] font-mono">
-                        pass: ••••••••
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-[11px] text-[#666666] font-mono">pass:</span>
+                        {visiblePasswords[doc.id] ? (
+                          <span className="font-mono text-xs font-bold text-[#00829B] bg-[#E6F3F5] px-2 py-0.5 rounded border border-[#00829B]/20 select-all">
+                            {doc.password || 'password123'}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-[#666666] font-mono tracking-widest bg-gray-100 px-1.5 py-0.5 rounded">
+                            ••••••••
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility(doc.id)}
+                          className="p-1 text-[#666666] hover:text-[#00829B] hover:bg-[#F4F6F6] rounded transition-colors"
+                          title={visiblePasswords[doc.id] ? 'Hide doctor password' : 'View doctor password'}
+                        >
+                          {visiblePasswords[doc.id] ? (
+                            <EyeOff className="w-3.5 h-3.5" />
+                          ) : (
+                            <Eye className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                        {visiblePasswords[doc.id] && (
+                          <button
+                            type="button"
+                            onClick={() => handleCopyPassword(doc.id, doc.name, doc.password)}
+                            className="p-1 text-[#666666] hover:text-[#00829B] hover:bg-[#F4F6F6] rounded transition-colors"
+                            title="Copy password to clipboard"
+                          >
+                            {copiedDoctorId === doc.id ? (
+                              <Check className="w-3.5 h-3.5 text-[#22A06B]" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
 
@@ -350,13 +439,24 @@ export const AdminDoctorManagement: React.FC = () => {
             </div>
             <div>
               <label className="block font-bold text-[#1A1A1A] mb-1">Assigned Password</label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full p-2.5 bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B]"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showAddPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Password for doctor portal"
+                  className="w-full p-2.5 pr-10 bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B]"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAddPassword(!showAddPassword)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-[#666666] hover:text-[#1A1A1A]"
+                  title={showAddPassword ? 'Hide password' : 'View password'}
+                >
+                  {showAddPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -461,7 +561,7 @@ export const AdminDoctorManagement: React.FC = () => {
         <Modal
           isOpen={Boolean(editingDoctor)}
           onClose={() => setEditingDoctor(null)}
-          title={`Edit Dr. ${editingDoctor.name}`}
+          title={editingDoctor.name.startsWith('Dr.') ? `Edit ${editingDoctor.name}` : `Edit Dr. ${editingDoctor.name}`}
           subtitle="Modify doctor details, credentials, or contact info."
           maxWidth="lg"
         >
@@ -507,14 +607,24 @@ export const AdminDoctorManagement: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block font-bold text-[#1A1A1A] mb-1">Reset Password</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full p-2.5 bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B]"
-                  required
-                />
+                <label className="block font-bold text-[#1A1A1A] mb-1">Current / Reset Password</label>
+                <div className="relative">
+                  <input
+                    type={showEditPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full p-2.5 pr-10 bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B]"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPassword(!showEditPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-[#666666] hover:text-[#1A1A1A]"
+                    title={showEditPassword ? 'Hide password' : 'View password'}
+                  >
+                    {showEditPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 

@@ -24,6 +24,7 @@ import {
   saveDoctorToFirestore,
   deleteDoctorFromFirestore,
   savePatientToFirestore,
+  deletePatientFromFirestore,
   saveAppointmentToFirestore,
   savePrescriptionToFirestore,
   saveSpecializationToFirestore,
@@ -62,9 +63,36 @@ interface HospitalContextType {
   adminUser: { name: string; email: string; role: string } | null;
 
   // Auth Methods
-  sendPatientOtp: (email: string) => Promise<{ success: boolean; message: string; otpCode?: string }>;
-  verifyPatientOtp: (otp: string) => Promise<{ success: boolean; message: string }>;
-  loginPatientWithPassword: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
+  sendPatientOtp: (email: string) => Promise<{
+    success: boolean;
+    message: string;
+    otpCode?: string;
+    sentViaResend?: boolean;
+    resendWarning?: string | null;
+  }>;
+  verifyPatientOtp: (otp: string) => Promise<{
+    success: boolean;
+    message: string;
+    isNewPatient?: boolean;
+    email?: string;
+  }>;
+  loginPatientWithPassword: (email: string, password: string) => Promise<{
+    success: boolean;
+    message: string;
+    isNewPatient?: boolean;
+    email?: string;
+  }>;
+  completeNewPatientProfile: (details: {
+    name: string;
+    email: string;
+    phone: string;
+    age: number;
+    gender: 'Female' | 'Male' | 'Other';
+    bloodGroup: string;
+    address?: string;
+    emergencyContact?: string;
+    password?: string;
+  }) => Promise<{ success: boolean; message: string; patient?: Patient }>;
   signupPatient: (data: {
     name: string;
     email: string;
@@ -127,6 +155,10 @@ interface HospitalContextType {
   editDoctor: (doctorId: string, updates: Partial<Doctor>) => void;
   deleteDoctor: (doctorId: string) => void;
 
+  // Admin Patient Operations
+  editPatient: (patientId: string, updates: Partial<Patient>) => Promise<boolean>;
+  deletePatient: (patientId: string) => Promise<boolean>;
+
   // Admin Specialization Operations
   addSpecialization: (specData: Omit<Specialization, 'id'>) => void;
   editSpecialization: (specId: string, updates: Partial<Specialization>) => void;
@@ -150,9 +182,9 @@ interface HospitalContextType {
 
 export const DEFAULT_HERO_CONFIG: HeroMediaConfig = {
   mediaType: 'image',
-  imageUrl: 'https://cdn.sanity.io/images/0xgev689/production/6aaacb898a16542f6906ef4a221bb9e480d147c0-1481x861.png?w=1920&q=72&fit=max&auto=format',
+  imageUrl: 'https://pub-f6697a3e2acd4048a86b5ed54d969979.r2.dev/uploads/1794544119196-InspireZest_Hospital_at_Dusk.png',
   videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-medical-laboratory-research-39824-large.mp4',
-  mobileImageUrl: 'https://cdn.sanity.io/images/0xgev689/production/b2c54528795dc739c9edfbf60fad84a1d6902519-640x980.png?w=750&q=55&fit=max&auto=format',
+  mobileImageUrl: '',
   overlayOpacity: 40,
   headline: 'World-Class Healthcare, Tailored for You',
   subheadline: 'Multi-super speciality hospital network delivering clinical excellence, patient-centric care, and innovative medical breakthroughs across India.',
@@ -212,7 +244,39 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
 
       const storedSpecs = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}specs`);
-      if (storedSpecs) setSpecializations(JSON.parse(storedSpecs));
+      if (storedSpecs) {
+        try {
+          const parsed = JSON.parse(storedSpecs);
+          const map = new Map<string, Specialization>();
+          CLOUD_SPECIALIZATIONS.forEach((s) => map.set(s.id, s));
+          if (Array.isArray(parsed)) {
+            parsed.forEach((s: Specialization) => {
+              let id = s.id;
+              let name = s.name;
+              if (id === 'spec-obgyn' || name === 'Gynecology') {
+                id = 'spec-gynecology';
+                name = 'Obstetrics & Gynaecology';
+              }
+              if (name === 'Pediatrics') {
+                id = 'spec-pediatrics';
+                name = 'Paediatrics & Neonatology';
+              }
+              const existing = map.get(id);
+              map.set(id, {
+                ...(existing || s),
+                ...s,
+                id,
+                name,
+              });
+            });
+          }
+          const unified = Array.from(map.values());
+          setSpecializations(unified);
+          try {
+            localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}specs`, JSON.stringify(unified));
+          } catch {}
+        } catch {}
+      }
 
       const storedDoctors = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}doctors`);
       if (storedDoctors) {
@@ -237,6 +301,16 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const storedUser = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`);
         if (storedUser) setPatientUser(JSON.parse(storedUser));
       }
+
+      const storedAdminAuth = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}admin_auth`);
+      if (storedAdminAuth === 'false') {
+        setIsAdminAuthenticated(false);
+        setAdminUser(null);
+      } else if (storedAdminAuth === 'true') {
+        setIsAdminAuthenticated(true);
+        const storedAdminUser = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}admin_user`);
+        if (storedAdminUser) setAdminUser(JSON.parse(storedAdminUser));
+      }
     } catch {
       // LocalStorage error handled gracefully
     }
@@ -254,7 +328,20 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         ]);
 
         if (remoteHero) {
-          setHeroConfig(remoteHero);
+          const sanitizedHero: HeroMediaConfig = {
+            ...remoteHero,
+            mobileImageUrl:
+              remoteHero.mobileImageUrl && remoteHero.mobileImageUrl.includes('sanity.io')
+                ? ''
+                : (remoteHero.mobileImageUrl || ''),
+          };
+          setHeroConfig(sanitizedHero);
+          try {
+            localStorage.setItem(
+              `${LOCAL_STORAGE_KEY_PREFIX}hero_config`,
+              JSON.stringify(sanitizedHero)
+            );
+          } catch {}
         }
 
         if (remoteDoctors && remoteDoctors.length > 0) {
@@ -263,7 +350,32 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           if (currentDoc) setDoctorUser(currentDoc);
         }
         if (remoteSpecs && remoteSpecs.length > 0) {
-          setSpecializations(remoteSpecs);
+          const map = new Map<string, Specialization>();
+          CLOUD_SPECIALIZATIONS.forEach((s) => map.set(s.id, s));
+          remoteSpecs.forEach((s: Specialization) => {
+            let id = s.id;
+            let name = s.name;
+            if (id === 'spec-obgyn' || name === 'Gynecology') {
+              id = 'spec-gynecology';
+              name = 'Obstetrics & Gynaecology';
+            }
+            if (name === 'Pediatrics') {
+              id = 'spec-pediatrics';
+              name = 'Paediatrics & Neonatology';
+            }
+            const existing = map.get(id);
+            map.set(id, {
+              ...(existing || s),
+              ...s,
+              id,
+              name,
+            });
+          });
+          const unified = Array.from(map.values());
+          setSpecializations(unified);
+          try {
+            localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}specs`, JSON.stringify(unified));
+          } catch {}
         }
         if (remotePatients && remotePatients.length > 0) {
           setPatients(remotePatients);
@@ -280,6 +392,18 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     syncFirestoreData();
+
+    // Cross-tab synchronization for hero config changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `${LOCAL_STORAGE_KEY_PREFIX}hero_config` && e.newValue) {
+        try {
+          const updated = JSON.parse(e.newValue);
+          setHeroConfig(updated);
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Save changes to LocalStorage
@@ -371,14 +495,26 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       });
       const data = await res.json();
       if (data.success) {
-        addToast(
-          data.sentViaResend
-            ? `Verification code dispatched to ${email} via Resend.`
-            : `Verification OTP generated. Code: ${data.otpCode}`,
-          'success',
-          data.sentViaResend ? 'Email Sent via Resend' : 'OTP Code Ready'
-        );
-        return { success: true, message: data.message, otpCode: data.otpCode };
+        if (data.sentViaResend) {
+          addToast(
+            `Verification code sent to ${email} via Resend. Check your Inbox and Spam/Junk folder!`,
+            'success',
+            'Email Dispatched via Resend'
+          );
+        } else {
+          addToast(
+            data.resendWarning || `Resend Sandbox Active: Emails are only sent to thanzeerwork@gmail.com. Verification code: ${data.otpCode}`,
+            'warning',
+            'Resend Sandbox Notice'
+          );
+        }
+        return {
+          success: true,
+          message: data.message,
+          otpCode: data.otpCode,
+          sentViaResend: data.sentViaResend,
+          resendWarning: data.resendWarning,
+        };
       } else {
         addToast(data.message || 'Failed to send OTP code', 'error', 'Error');
         return { success: false, message: data.message };
@@ -387,7 +523,7 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.warn('sendPatientOtp network fallback:', err);
       const mockOtp = '492815';
       addToast(`OTP Code sent to ${email}. Test OTP: ${mockOtp}`, 'success', 'Verification Code Sent');
-      return { success: true, message: 'OTP sent to your email', otpCode: mockOtp };
+      return { success: true, message: 'OTP sent to your email', otpCode: mockOtp, sentViaResend: false };
     }
   };
 
@@ -408,65 +544,109 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     if (verified || otp === '492815' || otp.length === 6) {
-      let patient = patients.find((p) => p.email.toLowerCase() === (patientOtpPendingEmail || '').toLowerCase());
+      const email = (patientOtpPendingEmail || '').trim().toLowerCase();
+      let patient = patients.find((p) => p.email.toLowerCase() === email);
+
       if (!patient) {
-        // Create new patient
-        const newPatient: Patient = {
-          id: `pat-${Date.now()}`,
-          name: patientOtpPendingEmail ? patientOtpPendingEmail.split('@')[0].replace('.', ' ') : 'Verified Patient',
-          email: patientOtpPendingEmail || 'patient@example.com',
-          phone: '+1 (555) 019-2834',
-          age: 32,
-          gender: 'Female',
-          bloodGroup: 'O+',
-          address: '400 Clinical Parkway, Suite 12',
-          emergencyContact: 'Family Contact - +1 (555) 000-1122',
-          registeredDate: new Date().toISOString().split('T')[0],
+        // New patient detected: Ask patient to fill their real details
+        return {
+          success: true,
+          isNewPatient: true,
+          email: patientOtpPendingEmail || '',
+          message: 'OTP verified. Please complete your patient details to register.',
         };
-        patient = newPatient;
-        setPatients((prev) => [newPatient, ...prev]);
-        savePatientToFirestore(newPatient);
       }
+
       setPatientUser(patient);
       setIsPatientAuthenticated(true);
+      setCurrentRole('patient');
       setPatientOtpPendingEmail(null);
-      addToast('Patient authenticated successfully', 'success', 'Welcome');
-      return { success: true, message: 'Logged in successfully' };
+
+      try {
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_auth`, 'true');
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`, JSON.stringify(patient));
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'patient');
+      } catch {}
+
+      addToast(`Welcome back, ${patient.name}`, 'success', 'Signed In Successfully');
+      return { success: true, isNewPatient: false, message: 'Logged in successfully' };
     }
     addToast('Invalid verification code. Please check your email or use test OTP 492815', 'error', 'OTP Verification Failed');
     return { success: false, message: 'Invalid OTP code' };
   };
 
   const loginPatientWithPassword = async (email: string, password: string) => {
-    const patient = patients.find((p) => p.email.toLowerCase() === email.toLowerCase());
+    const cleanEmail = email.trim().toLowerCase();
+    const patient = patients.find((p) => p.email.toLowerCase() === cleanEmail);
     if (patient) {
       setPatientUser(patient);
       setIsPatientAuthenticated(true);
+      setCurrentRole('patient');
+
+      try {
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_auth`, 'true');
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`, JSON.stringify(patient));
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'patient');
+      } catch {}
+
       addToast(`Welcome back, ${patient.name}`, 'success', 'Signed In Successfully');
-      return { success: true, message: 'Logged in successfully' };
+      return { success: true, isNewPatient: false, message: 'Logged in successfully' };
     }
-    if (email.includes('@') && password.length >= 4) {
-      const guestPatient: Patient = {
-        id: `pat-${Date.now()}`,
-        name: email.split('@')[0].replace('.', ' '),
-        email,
-        phone: '+1 (555) 234-5678',
-        age: 32,
-        gender: 'Female',
-        bloodGroup: 'O+',
-        address: '400 Medical Center Blvd',
-        emergencyContact: 'Family Contact',
-        registeredDate: new Date().toISOString().split('T')[0],
+
+    if (cleanEmail.includes('@') && password.length >= 4) {
+      // New patient detected: Ask patient to fill their real details
+      return {
+        success: true,
+        isNewPatient: true,
+        email: cleanEmail,
+        message: 'New patient account detected. Please provide your profile details to complete registration.',
       };
-      setPatients((prev) => [guestPatient, ...prev]);
-      setPatientUser(guestPatient);
-      setIsPatientAuthenticated(true);
-      savePatientToFirestore(guestPatient).catch(() => {});
-      addToast(`Welcome, ${guestPatient.name}`, 'success', 'Patient Account Authenticated');
-      return { success: true, message: 'Logged in successfully' };
     }
     addToast('Invalid email or password', 'error', 'Login Failed');
     return { success: false, message: 'Invalid credentials' };
+  };
+
+  const completeNewPatientProfile = async (details: {
+    name: string;
+    email: string;
+    phone: string;
+    age: number;
+    gender: 'Female' | 'Male' | 'Other';
+    bloodGroup: string;
+    address?: string;
+    emergencyContact?: string;
+    password?: string;
+  }) => {
+    const cleanEmail = details.email.trim().toLowerCase();
+    const newPatient: Patient = {
+      id: `pat-${Date.now()}`,
+      name: details.name.trim(),
+      email: cleanEmail,
+      phone: details.phone.trim(),
+      age: Number(details.age) || 30,
+      gender: details.gender || 'Female',
+      bloodGroup: details.bloodGroup || 'O+',
+      address: details.address?.trim() || 'Residential Address Not Specified',
+      emergencyContact: details.emergencyContact?.trim() || 'Emergency Contact Pending',
+      registeredDate: new Date().toISOString().split('T')[0],
+    };
+
+    setPatients((prev) => [newPatient, ...prev.filter((p) => p.email.toLowerCase() !== cleanEmail)]);
+    setPatientUser(newPatient);
+    setIsPatientAuthenticated(true);
+    setCurrentRole('patient');
+    setPatientOtpPendingEmail(null);
+
+    try {
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_auth`, 'true');
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`, JSON.stringify(newPatient));
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'patient');
+    } catch {}
+
+    savePatientToFirestore(newPatient).catch((err) => console.warn('Firestore sync note:', err));
+
+    addToast(`Welcome to InspireZest, ${newPatient.name}! Profile registered.`, 'success', 'Registration Completed');
+    return { success: true, message: 'Registration complete', patient: newPatient };
   };
 
   const signupPatient = async (data: {
@@ -584,18 +764,52 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const loginAdmin = async (username: string, password: string) => {
-    if (
-      username.toLowerCase().includes('admin') ||
-      username === 'admin@apexcare.org' ||
-      password === 'admin123' ||
-      password.length >= 4
-    ) {
+    const cleanUser = username.trim().toLowerCase();
+    const cleanPass = password.trim();
+
+    // 1. Check registered admins from localStorage
+    let registeredMatch: { name: string; email: string; role: string; password?: string } | null = null;
+    try {
+      const rawAdmins = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}registered_admins`);
+      if (rawAdmins) {
+        const admins = JSON.parse(rawAdmins);
+        registeredMatch = admins.find(
+          (a: any) => a.email.toLowerCase() === cleanUser && a.password === cleanPass
+        ) || null;
+      }
+    } catch {}
+
+    const isDefaultAdmin =
+      (cleanUser === 'admin@inspirezest.com' || cleanUser === 'admin' || cleanUser === 'admin@apexcare.org') &&
+      (cleanPass === 'admin123' || cleanPass === 'admin');
+
+    const isGenericAdmin = cleanUser.includes('admin') && cleanPass.length >= 4;
+
+    if (registeredMatch || isDefaultAdmin || isGenericAdmin) {
+      const activeAdmin = registeredMatch
+        ? { name: registeredMatch.name, email: registeredMatch.email, role: registeredMatch.role }
+        : {
+            name: 'Hospital Administration Director',
+            email: cleanUser.includes('@') ? cleanUser : 'admin@inspirezest.com',
+            role: 'Chief Medical Administrator',
+          };
+
+      setAdminUser(activeAdmin);
       setIsAdminAuthenticated(true);
+      setCurrentRole('admin');
+
+      try {
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}admin_auth`, 'true');
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}admin_user`, JSON.stringify(activeAdmin));
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'admin');
+      } catch {}
+
       addToast('Administrator authenticated', 'success', 'Admin Portal Access Granted');
       return { success: true, message: 'Admin login successful' };
     }
-    addToast('Invalid administrator credentials. Try admin@apexcare.org', 'error', 'Login Failed');
-    return { success: false, message: 'Invalid credentials' };
+
+    addToast('Invalid administrator credentials. Try admin@inspirezest.com / admin123', 'error', 'Login Failed');
+    return { success: false, message: 'Invalid administrative email or password' };
   };
 
   const signupAdmin = async (data: {
@@ -617,8 +831,22 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       role: data.role || 'Hospital Administrator',
     };
 
+    try {
+      const rawAdmins = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}registered_admins`);
+      const admins = rawAdmins ? JSON.parse(rawAdmins) : [];
+      admins.push({
+        ...adminProfile,
+        password: data.password || 'admin123',
+      });
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}registered_admins`, JSON.stringify(admins));
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}admin_auth`, 'true');
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}admin_user`, JSON.stringify(adminProfile));
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}role`, 'admin');
+    } catch {}
+
     setAdminUser(adminProfile);
     setIsAdminAuthenticated(true);
+    setCurrentRole('admin');
 
     addToast(`Admin account activated for ${adminProfile.name}`, 'success', 'Administrator Enrolled');
     return { success: true, message: 'Admin account created successfully' };
@@ -640,6 +868,11 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       addToast('Doctor signed out', 'info');
     } else if (target === 'admin') {
       setIsAdminAuthenticated(false);
+      setAdminUser(null);
+      try {
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}admin_auth`, 'false');
+        localStorage.removeItem(`${LOCAL_STORAGE_KEY_PREFIX}admin_user`);
+      } catch {}
       addToast('Administrator logged out', 'info');
     }
   };
@@ -847,6 +1080,53 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     addToast('Doctor removed from active hospital registry', 'warning', 'Doctor Deleted');
   };
 
+  // Admin Patient Operations
+  const editPatient = async (patientId: string, updates: Partial<Patient>): Promise<boolean> => {
+    let updatedPatient: Patient | null = null;
+    setPatients((prev) =>
+      prev.map((p) => {
+        if (p.id === patientId) {
+          updatedPatient = { ...p, ...updates };
+          return updatedPatient;
+        }
+        return p;
+      })
+    );
+
+    if (patientUser && patientUser.id === patientId) {
+      const merged = { ...patientUser, ...updates };
+      setPatientUser(merged);
+      try {
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`, JSON.stringify(merged));
+      } catch {}
+    }
+
+    if (updatedPatient) {
+      savePatientToFirestore(updatedPatient).catch((err) => console.warn('Firestore updatePatient note:', err));
+    }
+
+    addToast('Patient record modified successfully', 'success', 'Patient Updated');
+    return true;
+  };
+
+  const deletePatient = async (patientId: string): Promise<boolean> => {
+    const patToDelete = patients.find((p) => p.id === patientId);
+    setPatients((prev) => prev.filter((p) => p.id !== patientId));
+    deletePatientFromFirestore(patientId).catch((err) => console.warn('Firestore deletePatient note:', err));
+
+    if (patientUser && patientUser.id === patientId) {
+      setPatientUser(null);
+      setIsPatientAuthenticated(false);
+      try {
+        localStorage.removeItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_user`);
+        localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}patient_auth`, 'false');
+      } catch {}
+    }
+
+    addToast(`Patient record for ${patToDelete?.name || patientId} removed from registry`, 'warning', 'Patient Deleted');
+    return true;
+  };
+
   // Admin Specialization CRUD
   const addSpecialization = (specData: Omit<Specialization, 'id'>) => {
     const newSpec: Specialization = {
@@ -939,6 +1219,7 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         sendPatientOtp,
         verifyPatientOtp,
         loginPatientWithPassword,
+        completeNewPatientProfile,
         signupPatient,
         loginDoctor,
         signupDoctor,
@@ -954,6 +1235,8 @@ export const HospitalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         addDoctor,
         editDoctor,
         deleteDoctor,
+        editPatient,
+        deletePatient,
         addSpecialization,
         editSpecialization,
         deleteSpecialization,

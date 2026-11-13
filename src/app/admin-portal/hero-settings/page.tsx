@@ -34,6 +34,11 @@ export default function AdminHeroSettingsPage() {
   // Curated Preset Options
   const imagePresets = [
     {
+      name: 'InspireZest Hospital Campus at Dusk (Published)',
+      url: 'https://pub-f6697a3e2acd4048a86b5ed54d969979.r2.dev/uploads/1794544119196-InspireZest_Hospital_at_Dusk.png',
+      thumb: 'https://pub-f6697a3e2acd4048a86b5ed54d969979.r2.dev/uploads/1794544119196-InspireZest_Hospital_at_Dusk.png',
+    },
+    {
       name: 'Sunset Hospital Campus (Meditrina Style)',
       url: 'https://cdn.sanity.io/images/0xgev689/production/6aaacb898a16542f6906ef4a221bb9e480d147c0-1481x861.png?w=1920&q=72&fit=max&auto=format',
       thumb: 'https://cdn.sanity.io/images/0xgev689/production/6aaacb898a16542f6906ef4a221bb9e480d147c0-1481x861.png?w=300&q=60&fit=max&auto=format',
@@ -47,11 +52,6 @@ export default function AdminHeroSettingsPage() {
       name: 'Advanced Biplane Surgical Cathlab',
       url: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1920&q=80',
       thumb: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=300&q=60',
-    },
-    {
-      name: 'Compassionate Diagnostic Care',
-      url: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=1920&q=80',
-      thumb: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=300&q=60',
     },
   ];
 
@@ -73,7 +73,7 @@ export default function AdminHeroSettingsPage() {
     },
   ];
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'image' | 'video') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'image' | 'video' | 'mobile-image') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -93,9 +93,15 @@ export default function AdminHeroSettingsPage() {
         if (target === 'video') {
           setVideoUrl(data.url);
           setMediaType('video');
+        } else if (target === 'mobile-image') {
+          setMobileImageUrl(data.url);
         } else {
           setImageUrl(data.url);
           setMediaType('image');
+          // If mobile image had legacy placeholder or was unset, clear it so desktop image auto-applies to mobile
+          if (!mobileImageUrl || mobileImageUrl.includes('sanity.io')) {
+            setMobileImageUrl('');
+          }
         }
         addToast(
           `Uploaded ${file.name} to Cloudflare R2 storage!`,
@@ -128,16 +134,17 @@ export default function AdminHeroSettingsPage() {
   };
 
   const handleReset = async () => {
-    if (confirm('Restore the patient portal hero background to the default Meditrina campus imagery?')) {
+    if (confirm('Restore the patient portal hero background to the default InspireZest campus photo?')) {
       await resetHeroConfig();
       setMediaType('image');
-      setImageUrl('https://cdn.sanity.io/images/0xgev689/production/6aaacb898a16542f6906ef4a221bb9e480d147c0-1481x861.png?w=1920&q=72&fit=max&auto=format');
+      setImageUrl('https://pub-f6697a3e2acd4048a86b5ed54d969979.r2.dev/uploads/1794544119196-InspireZest_Hospital_at_Dusk.png');
+      setMobileImageUrl('');
       setVideoUrl('https://assets.mixkit.co/videos/preview/mixkit-medical-laboratory-research-39824-large.mp4');
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC]">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#F8FAFC]">
       <AdminSidebar />
 
       <main className="flex-1 flex flex-col min-w-0">
@@ -465,16 +472,43 @@ export default function AdminHeroSettingsPage() {
 
                 {/* Optional Mobile Image */}
                 <div className="pt-3 border-t border-gray-100">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Optional Mobile Banner URL (Portrait)
-                  </label>
-                  <input
-                    type="url"
-                    value={mobileImageUrl}
-                    onChange={(e) => setMobileImageUrl(e.target.value)}
-                    placeholder="https://.../mobile-banner.jpg"
-                    className="w-full px-3.5 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B]"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      Optional Dedicated Mobile Banner (Portrait)
+                    </label>
+                    {mobileImageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setMobileImageUrl('')}
+                        className="text-[11px] text-[#00829B] hover:underline font-medium"
+                      >
+                        Clear (Use Desktop Image Everywhere)
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-gray-400 mb-2">
+                    Leave blank to automatically use your high-resolution desktop image on smartphones and tablets.
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={mobileImageUrl}
+                      onChange={(e) => setMobileImageUrl(e.target.value)}
+                      placeholder="Leave blank to use desktop image, or paste mobile image URL..."
+                      className="flex-1 px-3.5 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] font-mono"
+                    />
+                    <label className="relative inline-flex items-center justify-center px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg cursor-pointer transition-colors shrink-0 border border-gray-300">
+                      <Upload className="w-3.5 h-3.5 mr-1" />
+                      <span>{isUploading ? 'Uploading...' : 'Upload Mobile'}</span>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={(e) => handleFileUpload(e, 'mobile-image')}
+                        disabled={isUploading}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
             )}

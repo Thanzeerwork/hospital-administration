@@ -145,6 +145,7 @@ export const PatientNav: React.FC<PatientNavProps> = ({
   ];
 
   const isHomePage = pathname === '/patient-portal' || pathname === '/';
+  const isNavbarTransparent = isHomePage && !isScrolled && !activeMegaMenu && !mobileMenuOpen;
 
   return (
     <header
@@ -153,7 +154,7 @@ export const PatientNav: React.FC<PatientNavProps> = ({
       className={`z-50 transition-all duration-300 ${
         isHomePage
           ? `fixed top-0 left-0 right-0 ${
-              isScrolled || activeMegaMenu
+              isScrolled || activeMegaMenu || mobileMenuOpen
                 ? 'bg-[#FAFAFA] shadow-sm border-b border-[#EAEAEA] text-[#1A1A1A]'
                 : 'bg-transparent text-[#1A1A1A]'
             }`
@@ -161,15 +162,20 @@ export const PatientNav: React.FC<PatientNavProps> = ({
       }`}
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 2xl:px-14">
-        <div className="flex items-center justify-between py-2.5 sm:py-3 lg:py-2">
+        <div className="flex items-center justify-between py-2 sm:py-2.5 lg:py-2">
           {/* 1. Left Logo (InspireZest Official Logo) */}
-          <div className="shrink-0 flex items-center pr-4 xl:pr-8 py-0.5">
+          <div className="shrink-0 flex items-center pr-2 sm:pr-4 xl:pr-8 py-0.5 max-w-[62%] sm:max-w-none">
             <Link
               href="/patient-portal"
               onClick={closeAllMenus}
-              className="inline-block hover:opacity-95 transition-opacity"
+              className="inline-flex items-center hover:opacity-95 transition-opacity"
             >
-              <InspireZestLogo variant="full" size="lg" onDark={false} priority />
+              <InspireZestLogo
+                variant="full"
+                size="lg"
+                onDark={isNavbarTransparent}
+                priority
+              />
             </Link>
           </div>
 
@@ -405,11 +411,11 @@ export const PatientNav: React.FC<PatientNavProps> = ({
           </div>
 
           {/* 3. Mobile View Actions & Hamburger */}
-          <div className="flex lg:hidden items-center gap-3">
+          <div className="flex lg:hidden items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onOpenBookingModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#00829B] text-white text-xs font-bold shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#00829B] hover:bg-[#006C82] text-white text-xs font-bold shadow-sm whitespace-nowrap active:scale-95 transition-all"
             >
               <span>Book</span>
               <ArrowRight className="w-3 h-3" />
@@ -418,9 +424,14 @@ export const PatientNav: React.FC<PatientNavProps> = ({
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-gray-700 hover:bg-black/5"
+              className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                isNavbarTransparent
+                  ? 'text-white hover:bg-white/10'
+                  : 'text-gray-800 hover:bg-black/5'
+              }`}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-6 h-6 text-gray-900" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>

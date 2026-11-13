@@ -169,9 +169,9 @@ export const DoctorAvailabilityView: React.FC = () => {
         </div>
 
         {/* Calendar Grid */}
-        <div className="border border-[#E5E7EB] rounded-xl overflow-hidden p-4 bg-[#F4F6F6]/30">
+        <div className="border border-[#E5E7EB] rounded-xl overflow-hidden p-2 sm:p-4 bg-[#F4F6F6]/30">
           {/* Day of Week Header */}
-          <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold text-[#666666] uppercase tracking-wider mb-3">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-[11px] sm:text-xs font-bold text-[#666666] uppercase tracking-wider mb-2 sm:mb-3">
             <span className="text-[#DC5555]">Sun</span>
             <span>Mon</span>
             <span>Tue</span>
@@ -182,13 +182,13 @@ export const DoctorAvailabilityView: React.FC = () => {
           </div>
 
           {/* Calendar Cells */}
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
             {calendarDays.map((item, idx) => {
               if (!item.isCurrentMonth) {
                 return (
                   <div
                     key={`blank-${idx}`}
-                    className="h-16 rounded-lg bg-transparent"
+                    className="h-12 sm:h-16 rounded-lg bg-transparent"
                   />
                 );
               }
@@ -199,20 +199,21 @@ export const DoctorAvailabilityView: React.FC = () => {
                 <button
                   key={item.dateString}
                   onClick={() => toggleDate(item.dateString)}
-                  className={`h-16 rounded-xl p-2 flex flex-col justify-between text-left transition-all duration-150 border ${
+                  className={`h-12 sm:h-16 rounded-lg sm:rounded-xl p-1 sm:p-2 flex flex-col justify-between text-left transition-all duration-150 border ${
                     isAvailable
                       ? 'bg-[#00829B] text-white border-[#00829B] shadow-sm ring-2 ring-[#00829B]/20'
                       : 'bg-white text-[#1A1A1A] border-[#E5E7EB] hover:border-[#00829B]/40 hover:bg-[#F4F6F6]'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-sm font-bold">{item.dayNumber}</span>
+                    <span className="text-xs sm:text-sm font-bold">{item.dayNumber}</span>
                     {isAvailable && (
-                      <span className="w-2 h-2 rounded-full bg-[#22A06B]" />
+                      <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#22A06B]" />
                     )}
                   </div>
-                  <div className="text-[10px] font-semibold">
-                    {isAvailable ? '✓ Open OPD' : 'Unavailable'}
+                  <div className="text-[9px] sm:text-[10px] font-semibold truncate">
+                    <span className="hidden sm:inline">{isAvailable ? '✓ Open OPD' : 'Unavailable'}</span>
+                    <span className="sm:hidden">{isAvailable ? '✓ Open' : 'Off'}</span>
                   </div>
                 </button>
               );

@@ -212,7 +212,7 @@ export const PatientFooter: React.FC = () => {
 
         {/* 3. Bottom Copyright & Legal Links */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
-          <p>© {new Date().getFullYear()} InspireZest Hospital. All Rights Reserved | Powered by Onbyz</p>
+          <p>© {new Date().getFullYear()} InspireZest Hospital. All Rights Reserved</p>
           <div className="flex items-center gap-6">
             <Link href="/patient-portal" className="hover:text-neutral-300 transition-colors">
               Privacy Policy

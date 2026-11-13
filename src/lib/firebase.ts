@@ -117,6 +117,16 @@ export async function savePatientToFirestore(patient: Patient): Promise<boolean>
   }
 }
 
+export async function deletePatientFromFirestore(patientId: string): Promise<boolean> {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS.PATIENTS, patientId));
+    return true;
+  } catch (err) {
+    console.warn('Firestore deletePatient warning (using local fallback):', err);
+    return false;
+  }
+}
+
 export async function fetchPatientsFromFirestore(): Promise<Patient[] | null> {
   try {
     const snap = await getDocs(collection(db, COLLECTIONS.PATIENTS));

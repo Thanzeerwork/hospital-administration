@@ -181,7 +181,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
             {specializations.map((spec) => {
               const specDoctors = doctors.filter((d) => d.specializationId === spec.id || d.specializationName.toLowerCase() === spec.name.toLowerCase());
               const count = specDoctors.length || spec.doctorCount || 4;
@@ -270,7 +270,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full min-w-[640px] text-left text-xs border-collapse">
             <thead>
               <tr className="bg-[#F4F6F6] border-b border-[#E5E7EB] text-[#666666] font-bold uppercase tracking-wider text-[11px]">
                 <th className="p-3.5">Reference & Patient</th>

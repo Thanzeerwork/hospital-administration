@@ -5,6 +5,7 @@ import { useHospital } from '@/context/HospitalContext';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { Modal } from '@/components/common/Modal';
+import { ConfirmationModal } from '@/components/common/ConfirmationModal';
 import { Patient } from '@/types';
 import {
   Search,
@@ -17,12 +18,39 @@ import {
   Clock,
   Eye,
   FileText,
+  Edit,
+  Trash2,
+  CheckCircle2,
+  AlertCircle,
+  User,
+  ShieldAlert,
+  Save,
+  X,
 } from 'lucide-react';
 
 export const AdminPatientManagement: React.FC = () => {
-  const { patients, appointments } = useHospital();
+  const { patients, appointments, editPatient, deletePatient } = useHospital();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+
+  // Edit State
+  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    age: 30,
+    gender: 'Female' as 'Female' | 'Male' | 'Other',
+    bloodGroup: 'O+',
+    address: '',
+    emergencyContact: '',
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  // Delete State
+  const [deletingPatient, setDeletingPatient] = useState<Patient | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredPatients = patients.filter(
     (p) =>
@@ -40,53 +68,122 @@ export const AdminPatientManagement: React.FC = () => {
         a.patientEmail.toLowerCase() === selectedPatient.email.toLowerCase())
   );
 
+  const handleOpenEdit = (pat: Patient) => {
+    setEditingPatient(pat);
+    setEditFormData({
+      name: pat.name,
+      email: pat.email,
+      phone: pat.phone,
+      age: pat.age,
+      gender: pat.gender,
+      bloodGroup: pat.bloodGroup,
+      address: pat.address,
+      emergencyContact: pat.emergencyContact,
+    });
+    setEditError(null);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPatient) return;
+
+    if (!editFormData.name.trim() || !editFormData.email.trim() || !editFormData.phone.trim()) {
+      setEditError('Name, email, and contact phone are required fields.');
+      return;
+    }
+
+    setIsSaving(true);
+    setEditError(null);
+    try {
+      await editPatient(editingPatient.id, {
+        name: editFormData.name.trim(),
+        email: editFormData.email.trim().toLowerCase(),
+        phone: editFormData.phone.trim(),
+        age: Number(editFormData.age) || 30,
+        gender: editFormData.gender,
+        bloodGroup: editFormData.bloodGroup,
+        address: editFormData.address.trim(),
+        emergencyContact: editFormData.emergencyContact.trim(),
+      });
+      setEditingPatient(null);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingPatient) return;
+    setIsDeleting(true);
+    try {
+      await deletePatient(deletingPatient.id);
+      setDeletingPatient(null);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="border-b border-[#E5E7EB] pb-4">
-        <h1 className="text-2xl font-extrabold text-[#1A1A1A] tracking-tight">
-          Patient Directory & Records
-        </h1>
-        <p className="text-xs text-[#666666] mt-0.5">
-          View registered patients, demographic data, emergency contacts, and complete appointment histories.
-        </p>
+      <div className="border-b border-[#E5E7EB] pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold text-[#1A1A1A] tracking-tight flex items-center gap-2">
+            <Users2 className="w-6 h-6 text-[#00829B]" />
+            <span>Patient Directory & Master Index</span>
+          </h1>
+          <p className="text-xs text-[#666666] mt-0.5">
+            Audit registered patients, update clinical demographics, modify records, and manage hospital enrollment.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1.5 rounded-lg bg-white border border-[#E5E7EB] text-xs font-semibold text-[#666666] shadow-xs">
+            Total Enrolled: <strong className="text-[#00829B] font-bold">{patients.length} Patients</strong>
+          </span>
+        </div>
       </div>
 
       {/* Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-xs flex items-center justify-between gap-3">
-        <div className="relative flex-1">
+      <div className="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 text-[#666666] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search patients by name, email, phone, or MRN..."
-            className="w-full pl-9 pr-3.5 py-2 text-xs text-[#1A1A1A] bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:bg-white"
+            className="w-full pl-9 pr-3.5 py-2.5 text-xs text-[#1A1A1A] bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:bg-white transition-all"
           />
         </div>
-        <div className="text-xs text-[#666666] font-semibold">
-          Total Registered: <strong className="text-[#1A1A1A]">{patients.length}</strong>
-        </div>
+        {searchTerm && (
+          <button
+            onClick={() => setSearchTerm('')}
+            className="text-xs text-[#666666] hover:text-[#1A1A1A] flex items-center gap-1 shrink-0"
+          >
+            <X className="w-3.5 h-3.5" />
+            Clear Filter
+          </button>
+        )}
       </div>
 
       {/* Patient Table */}
       <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full min-w-[700px] text-left text-xs border-collapse">
             <thead>
               <tr className="bg-[#F4F6F6] border-b border-[#E5E7EB] text-[#666666] font-bold uppercase tracking-wider text-[11px]">
                 <th className="p-3.5">Patient Details</th>
-                <th className="p-3.5">Age & Gender</th>
+                <th className="p-3.5">Demographics</th>
                 <th className="p-3.5">Blood Group</th>
                 <th className="p-3.5">Contact Channels</th>
+                <th className="p-3.5">Address / City</th>
                 <th className="p-3.5">Enrolled Date</th>
-                <th className="p-3.5 text-right">Action</th>
+                <th className="p-3.5 text-right">Administrative Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E7EB]">
               {filteredPatients.length > 0 ? (
                 filteredPatients.map((pat) => (
-                  <tr key={pat.id} className="hover:bg-[#F4F6F6]/80 transition-colors">
+                  <tr key={pat.id} className="hover:bg-[#F4F6F6]/70 transition-colors">
                     <td className="p-3.5">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-[#00829B]/15 text-[#00829B] flex items-center justify-center font-bold text-xs shrink-0">
@@ -96,7 +193,7 @@ export const AdminPatientManagement: React.FC = () => {
                           <span className="font-bold text-[#1A1A1A] text-sm block">
                             {pat.name}
                           </span>
-                          <span className="font-mono text-[10px] text-[#666666]">
+                          <span className="font-mono text-[10px] text-[#666666] bg-gray-100 px-1.5 py-0.5 rounded">
                             MRN: {pat.id}
                           </span>
                         </div>
@@ -114,25 +211,51 @@ export const AdminPatientManagement: React.FC = () => {
                       <div className="text-[#1A1A1A] font-medium">{pat.email}</div>
                       <div className="text-[11px] text-[#666666]">{pat.phone}</div>
                     </td>
-                    <td className="p-3.5 text-[#666666] font-mono">
+                    <td className="p-3.5 text-[#1A1A1A] max-w-[180px] truncate" title={pat.address}>
+                      {pat.address || '—'}
+                    </td>
+                    <td className="p-3.5 text-[#666666] font-mono whitespace-nowrap">
                       {pat.registeredDate}
                     </td>
                     <td className="p-3.5 text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        icon={<Eye className="w-3.5 h-3.5" />}
-                        onClick={() => setSelectedPatient(pat)}
-                      >
-                        History & Info
-                      </Button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          icon={<Eye className="w-3.5 h-3.5" />}
+                          onClick={() => setSelectedPatient(pat)}
+                          title="View clinical history & records"
+                        >
+                          <span className="hidden xl:inline">History</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-[#00829B] hover:bg-[#00829B]/10 hover:border-[#00829B]/30"
+                          icon={<Edit className="w-3.5 h-3.5" />}
+                          onClick={() => handleOpenEdit(pat)}
+                          title="Modify patient details"
+                        >
+                          <span>Edit</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-[#DC5555] hover:bg-[#DC5555]/10 hover:border-[#DC5555]/30"
+                          icon={<Trash2 className="w-3.5 h-3.5" />}
+                          onClick={() => setDeletingPatient(pat)}
+                          title="Delete patient from registry"
+                        >
+                          <span>Delete</span>
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-[#666666]">
-                    No patients found.
+                  <td colSpan={7} className="p-8 text-center text-[#666666]">
+                    No patients match your search criteria.
                   </td>
                 </tr>
               )}
@@ -141,7 +264,208 @@ export const AdminPatientManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Patient Detail & Appointment History Modal */}
+      {/* 1. EDIT / MODIFY PATIENT MODAL */}
+      {editingPatient && (
+        <Modal
+          isOpen={Boolean(editingPatient)}
+          onClose={() => setEditingPatient(null)}
+          title={`Modify Patient Record: ${editingPatient.name}`}
+          subtitle={`Hospital MRN: ${editingPatient.id} • Update clinical identity and contact records.`}
+          maxWidth="md"
+        >
+          <form onSubmit={handleSaveEdit} className="space-y-4 text-xs">
+            {editError && (
+              <div className="p-3 rounded-lg bg-[#DC5555]/10 border border-[#DC5555]/20 text-[#DC5555] font-semibold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{editError}</span>
+              </div>
+            )}
+
+            {/* Legal Name */}
+            <div>
+              <label className="block text-xs font-bold text-[#1A1A1A] mb-1.5">
+                Full Legal Name <span className="text-[#DC5555]">*</span>
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-[#666666] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  required
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  placeholder="e.g. Eleanor Vance"
+                  className="w-full pl-10 pr-3.5 py-2.5 text-xs text-[#1A1A1A] bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:bg-white transition-all font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Contact Email & Phone */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-[#1A1A1A] mb-1.5">
+                  Email Address <span className="text-[#DC5555]">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-[#666666] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    required
+                    value={editFormData.email}
+                    onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                    placeholder="patient@example.com"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-xs text-[#1A1A1A] bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#1A1A1A] mb-1.5">
+                  Phone Number <span className="text-[#DC5555]">*</span>
+                </label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-[#666666] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="tel"
+                    required
+                    value={editFormData.phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                    placeholder="+91 9567333266"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-xs text-[#1A1A1A] bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:bg-white transition-all font-medium"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Age, Gender & Blood Group */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-[#1A1A1A] mb-1.5">
+                  Age (Years) <span className="text-[#DC5555]">*</span>
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={120}
+                  required
+                  value={editFormData.age}
+                  onChange={(e) => setEditFormData({ ...editFormData, age: parseInt(e.target.value, 10) || 1 })}
+                  className="w-full px-3 py-2.5 text-xs text-[#1A1A1A] bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:bg-white transition-all font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#1A1A1A] mb-1.5">
+                  Gender <span className="text-[#DC5555]">*</span>
+                </label>
+                <select
+                  value={editFormData.gender}
+                  onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value as any })}
+                  className="w-full px-3 py-2.5 text-xs text-[#1A1A1A] bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:bg-white transition-all"
+                >
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#1A1A1A] mb-1.5">
+                  Blood Group
+                </label>
+                <select
+                  value={editFormData.bloodGroup}
+                  onChange={(e) => setEditFormData({ ...editFormData, bloodGroup: e.target.value })}
+                  className="w-full px-3 py-2.5 text-xs text-[#1A1A1A] bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:bg-white transition-all font-semibold text-[#DC5555]"
+                >
+                  <option value="O+">O Positive (O+)</option>
+                  <option value="A+">A Positive (A+)</option>
+                  <option value="B+">B Positive (B+)</option>
+                  <option value="AB+">AB Positive (AB+)</option>
+                  <option value="O-">O Negative (O-)</option>
+                  <option value="A-">A Negative (A-)</option>
+                  <option value="B-">B Negative (B-)</option>
+                  <option value="AB-">AB Negative (AB-)</option>
+                  <option value="Unknown">Don't Know</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Residential Address */}
+            <div>
+              <label className="block text-xs font-bold text-[#1A1A1A] mb-1.5">
+                Residential Address / Location
+              </label>
+              <div className="relative">
+                <MapPin className="w-4 h-4 text-[#666666] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={editFormData.address}
+                  onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
+                  placeholder="e.g. 400 Clinical Parkway, Suite 12, Kollam"
+                  className="w-full pl-10 pr-3.5 py-2.5 text-xs text-[#1A1A1A] bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:bg-white transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Emergency Contact */}
+            <div>
+              <label className="block text-xs font-bold text-[#1A1A1A] mb-1.5">
+                Emergency Contact (Name & Phone)
+              </label>
+              <div className="relative">
+                <ShieldAlert className="w-4 h-4 text-[#DC5555] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={editFormData.emergencyContact}
+                  onChange={(e) => setEditFormData({ ...editFormData, emergencyContact: e.target.value })}
+                  placeholder="e.g. David Vance (Spouse) - +91 9567333267"
+                  className="w-full pl-10 pr-3.5 py-2.5 text-xs text-[#1A1A1A] bg-[#F4F6F6] border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00829B] focus:bg-white transition-all font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Form Actions */}
+            <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingPatient(null)}
+                disabled={isSaving}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                className="bg-[#00829B] hover:bg-[#006C82]"
+                icon={<Save className="w-3.5 h-3.5" />}
+                isLoading={isSaving}
+              >
+                Save Patient Modifications
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* 2. DELETE CONFIRMATION MODAL */}
+      {deletingPatient && (
+        <ConfirmationModal
+          isOpen={Boolean(deletingPatient)}
+          onClose={() => setDeletingPatient(null)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Patient Record"
+          message={`Are you sure you want to permanently remove "${deletingPatient.name}" (MRN: ${deletingPatient.id}) from the hospital database? This will unlink their patient portal profile and clinical records.`}
+          confirmText="Delete Patient"
+          cancelText="Keep Patient"
+          variant="danger"
+          isLoading={isDeleting}
+        />
+      )}
+
+      {/* 3. PATIENT HISTORY & RECORD MODAL */}
       {selectedPatient && (
         <Modal
           isOpen={Boolean(selectedPatient)}
@@ -153,17 +477,47 @@ export const AdminPatientManagement: React.FC = () => {
           <div className="space-y-6 text-xs">
             {/* Demographics Card */}
             <div className="p-4 rounded-xl bg-[#F4F6F6] border border-[#E5E7EB] space-y-3">
-              <div className="flex items-center gap-3 pb-3 border-b border-[#E5E7EB]">
-                <div className="w-12 h-12 rounded-xl bg-[#00829B] text-white flex items-center justify-center font-bold text-base">
-                  {selectedPatient.name.charAt(0)}
+              <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-[#00829B] text-white flex items-center justify-center font-bold text-base shadow-xs">
+                    {selectedPatient.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-[#1A1A1A]">
+                      {selectedPatient.name}
+                    </h3>
+                    <p className="text-xs text-[#666666]">
+                      {selectedPatient.age} Years Old • {selectedPatient.gender} • Blood Type: <strong className="text-[#DC5555]">{selectedPatient.bloodGroup}</strong>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-bold text-[#1A1A1A]">
-                    {selectedPatient.name}
-                  </h3>
-                  <p className="text-xs text-[#666666]">
-                    {selectedPatient.age} Years Old • {selectedPatient.gender} • Blood Type: {selectedPatient.bloodGroup}
-                  </p>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-[#00829B] hover:bg-[#00829B]/10 hover:border-[#00829B]/30"
+                    icon={<Edit className="w-3.5 h-3.5" />}
+                    onClick={() => {
+                      const p = selectedPatient;
+                      setSelectedPatient(null);
+                      handleOpenEdit(p);
+                    }}
+                  >
+                    Modify
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-[#DC5555] hover:bg-[#DC5555]/10 hover:border-[#DC5555]/30"
+                    icon={<Trash2 className="w-3.5 h-3.5" />}
+                    onClick={() => {
+                      const p = selectedPatient;
+                      setSelectedPatient(null);
+                      setDeletingPatient(p);
+                    }}
+                  >
+                    Delete
+                  </Button>
                 </div>
               </div>
 
@@ -175,12 +529,12 @@ export const AdminPatientManagement: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-[11px] text-[#666666] block">Residential Address</span>
-                  <p className="font-medium text-[#1A1A1A] mt-0.5">{selectedPatient.address}</p>
+                  <p className="font-medium text-[#1A1A1A] mt-0.5">{selectedPatient.address || 'Not specified'}</p>
                 </div>
                 <div className="sm:col-span-2 pt-2 border-t border-[#E5E7EB]">
                   <span className="text-[11px] text-[#666666] block">Emergency Contact</span>
                   <p className="font-bold text-[#DC5555] mt-0.5">
-                    {selectedPatient.emergencyContact}
+                    {selectedPatient.emergencyContact || 'None on file'}
                   </p>
                 </div>
               </div>
@@ -243,4 +597,3 @@ export const AdminPatientManagement: React.FC = () => {
     </div>
   );
 };
-

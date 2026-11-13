@@ -19,10 +19,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-[#F4F6F6] text-[#1A1A1A] flex flex-col antialiased">
+    <html lang="en" className="overflow-x-hidden">
+      <body className="min-h-screen bg-[#F4F6F6] text-[#1A1A1A] flex flex-col antialiased overflow-x-hidden">
         <HospitalProvider>
-          <main className="flex-1 flex flex-col">{children}</main>
+          <main className="flex-1 flex flex-col overflow-x-hidden">{children}</main>
           <ToastContainer />
         </HospitalProvider>
       </body>
