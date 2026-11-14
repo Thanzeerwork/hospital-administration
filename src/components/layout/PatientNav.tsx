@@ -526,8 +526,8 @@ export const PatientNav: React.FC<PatientNavProps> = ({
                   </h3>
                   <div className="relative h-[200px] w-[310px] rounded-xl overflow-hidden shadow-sm">
                     <img
-                      src="https://www.meditrinahospitals.com/images/home/our-hospital-nav.webp"
-                      alt="InspireZest hospital building"
+                      src="/images/where-we-serve.jpg"
+                      alt="InspireZest Hospital where we serve"
                       className="w-full h-full object-cover"
                     />
                   </div>

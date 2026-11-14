@@ -1098,7 +1098,7 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
               experienceYears: 28,
               rating: 4.99,
               reviewCount: 342,
-              profileImage: 'https://cdn.sanity.io/images/0xgev689/production/e017037b0f40177ba8e4bb822c603fc11ca6d340-492x536.png',
+              profileImage: 'https://cdn.sanity.io/images/0xgev689/production/fd9f32234202abc3fc11098c1fee7804e1b6e9fa-403x442.png',
               bio: 'Chairman & Chief Interventional Cardiologist of InspireZest Group of Hospitals. Pioneer with over 28 years of clinical leadership and 16,000+ complex coronary angioplasties performed with exceptional clinical outcomes.',
               email: 'prathap.kumar@inspirezest.com',
               phone: '+91 9567333266',
@@ -1340,11 +1340,11 @@ export const PatientHome: React.FC<PatientHomeProps> = ({
 
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12 pt-14 sm:pt-20 lg:pt-28 pb-0">
           <div className="grid grid-cols-1 lg:grid-cols-[438px_minmax(0,1fr)] lg:items-end gap-10 lg:gap-x-16">
-            {/* Meditrina Doctor Cutout */}
+            {/* InspireZest Doctor Cutout */}
             <MotionReveal direction="left" duration={0.9} distance={60} className="relative order-2 lg:order-1 mx-auto lg:mx-0 w-full max-w-[340px] sm:max-w-[400px] lg:w-[438px] lg:max-w-none shrink-0">
               <img
-                src="https://www.meditrinahospitals.com/images/home/about-doctor.webp"
-                alt="Meditrina doctor"
+                src="/images/home/about-doctor.png"
+                alt="InspireZest Chief Medical Officer"
                 className="block h-auto w-full drop-shadow-2xl hover:scale-102 transition-transform duration-700 ease-out"
               />
             </MotionReveal>

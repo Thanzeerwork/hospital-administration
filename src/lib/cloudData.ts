@@ -220,7 +220,7 @@ export const CLOUD_DOCTORS: Doctor[] = [
     experienceYears: 28,
     rating: 4.99,
     reviewCount: 342,
-    profileImage: 'https://cdn.sanity.io/images/0xgev689/production/e017037b0f40177ba8e4bb822c603fc11ca6d340-492x536.png',
+    profileImage: 'https://cdn.sanity.io/images/0xgev689/production/fd9f32234202abc3fc11098c1fee7804e1b6e9fa-403x442.png',
     bio: 'Chairman & Chief Interventional Cardiologist of InspireZest Group of Hospitals. Pioneer with over 28 years of clinical leadership and 16,000+ complex coronary angioplasties performed with exceptional clinical outcomes.',
     email: 'prathap.kumar@inspirezest.com',
     phone: '+91 9567333266',
